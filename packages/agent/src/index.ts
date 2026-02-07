@@ -22,7 +22,12 @@ export { createSuiClient } from "./sui-client";
 export type { StableLayerClient } from "./stable-layer";
 export { InMemoryStableLayerClient } from "./stable-layer";
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isNodeRuntime =
+  typeof process !== "undefined" &&
+  Array.isArray(process.argv) &&
+  typeof process.argv[1] === "string";
+
+if (isNodeRuntime && import.meta.url === `file://${process.argv[1]}`) {
   const engine = new RuleEngine();
 
   const sampleRule: Rule = {
