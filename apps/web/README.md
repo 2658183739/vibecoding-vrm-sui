@@ -42,6 +42,11 @@ cp apps/web/.env.example apps/web/.env
 - `VITE_STABLE_LAYER_BRAND_USD_TYPE`
 - `VITE_STABLE_LAYER_USDC_TYPE`
 
+安全提醒：
+- 前端 `VITE_*` 变量会被打包进浏览器代码。
+- 阿里百炼 `DASHSCOPE_API_KEY` 不要写在这里。
+- 如需配置百炼，请写到 `packages/agent/.env.local`（参考 `packages/agent/.env.example`）。
+
 ## 开发命令
 
 ```bash

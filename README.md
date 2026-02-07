@@ -92,6 +92,17 @@ cp apps/web/.env.example apps/web/.env
 - `VITE_STABLE_LAYER_BRAND_USD_TYPE`
 - `VITE_STABLE_LAYER_USDC_TYPE`
 
+### 阿里百炼 Key（环境变量方式）
+
+- 复制：`packages/agent/.env.example -> packages/agent/.env.local`
+- 填写：
+  - `DASHSCOPE_API_KEY`
+  - `DASHSCOPE_BASE_URL`（默认 `https://dashscope.aliyuncs.com/compatible-mode/v1`）
+  - `DASHSCOPE_MODEL`（默认 `qwen3-max`）
+- 安全说明：
+  - `packages/agent/.env.local` 已被 `.gitignore` 忽略，不会上传。
+  - **不要**把密钥放进 `apps/web/.env` 的 `VITE_*` 变量中，前端构建后会暴露给所有访问者。
+
 ## 七、合约构建与发布（Move 2024）
 
 ```bash
