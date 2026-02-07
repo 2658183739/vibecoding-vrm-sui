@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+.DS_Store
+.idea
+.vscode
+.env
+.env.local
+.env.*
+.env.*.local
+!**/.env.example
+tools/sui/
+packages/move/build/
