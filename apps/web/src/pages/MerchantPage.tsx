@@ -39,9 +39,9 @@ function parsePositiveU64(input: string): bigint | null {
 }
 
 function formatInvoiceStatus(status: number): string {
-  if (status === 1) return "已支付";
-  if (status === 0) return "待支付";
-  return `未知(${status})`;
+  if (status === 1) return "Paid";
+  if (status === 0) return "Pending";
+  return `Unknown(${status})`;
 }
 
 async function copyText(value: string): Promise<void> {
@@ -145,7 +145,7 @@ export default function MerchantPage() {
     txFactory: () => Promise<Transaction> | Transaction
   ): Promise<void> {
     if (!account) {
-      setTxError("请先连接钱包。");
+      setTxError("Please connect wallet first.");
       return;
     }
 
@@ -168,7 +168,7 @@ export default function MerchantPage() {
 
   async function onCreateProduct(): Promise<void> {
     if (!parsedPrice) {
-      setTxError("请输入合法商品价格（u64 正整数）。");
+      setTxError("Please enter valid price (u64 positive integer).");
       return;
     }
 
@@ -203,12 +203,12 @@ export default function MerchantPage() {
 
   async function onCreateInvoice(): Promise<void> {
     if (!account) {
-      setTxError("请先连接钱包。");
+      setTxError("Please connect wallet first.");
       return;
     }
 
     if (!selectedProductId) {
-      setTxError("请先选择商品。");
+      setTxError("Please select a product first.");
       return;
     }
 
@@ -244,10 +244,10 @@ export default function MerchantPage() {
       <Card variant="secondary" className="panel-card shadow-[0_20px_60px_rgba(5,12,22,0.45)]">
         <Card.Content className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">商户控制台</h1>
-            <p className="text-sm text-slate-300">创建商品、签发账单，并复制支付链接给买家。</p>
+            <h1 className="text-2xl font-bold text-slate-100">Merchant Console</h1>
+            <p className="text-sm text-slate-300">Create products, issue invoices, and copy payment links for buyers.</p>
             <p className="mt-2 break-all text-xs text-slate-400">
-              商户对象 ID：{appConfig.objectIds.merchantId || "未配置"}
+              Merchant Object ID: {appConfig.objectIds.merchantId || "Not Configured"}
             </p>
           </div>
           <ConnectWalletButton />
@@ -257,7 +257,7 @@ export default function MerchantPage() {
       {!merchantReady && (
         <Card variant="secondary" className="panel-card border-red-400/40">
           <Card.Content className="text-sm text-red-300">
-            配置不完整：{merchantConfigError}
+            Config incomplete: {merchantConfigError}
           </Card.Content>
         </Card>
       )}
@@ -265,19 +265,19 @@ export default function MerchantPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card variant="secondary" className="panel-card">
           <Card.Content>
-            <p className="text-xs text-slate-400">商品总数</p>
+            <p className="text-xs text-slate-400">Total Products</p>
             <p className="text-xl font-semibold text-slate-100">{products.length}</p>
           </Card.Content>
         </Card>
         <Card variant="secondary" className="panel-card">
           <Card.Content>
-            <p className="text-xs text-slate-400">待支付账单</p>
+            <p className="text-xs text-slate-400">Pending Invoices</p>
             <p className="text-xl font-semibold text-amber-300">{unpaidCount}</p>
           </Card.Content>
         </Card>
         <Card variant="secondary" className="panel-card">
           <Card.Content>
-            <p className="text-xs text-slate-400">已支付账单</p>
+            <p className="text-xs text-slate-400">Paid Invoices</p>
             <p className="text-xl font-semibold text-emerald-300">{paidCount}</p>
           </Card.Content>
         </Card>
@@ -290,19 +290,19 @@ export default function MerchantPage() {
             className="rounded-lg border border-violet-400/40 px-3 py-1 text-sm text-violet-300 transition hover:bg-violet-500/10"
             onClick={() => loadData().catch((error) => setTxError(parseErrorMessage(error)))}
           >
-            刷新商品与账单
+            Refresh Products & Invoices
           </button>
           <Link
             className="rounded-lg border border-emerald-400/40 px-3 py-1 text-sm text-emerald-300 transition hover:bg-emerald-500/10"
             to="/merchant/claim"
           >
-            前往收益领取
+            Go to Claim Rewards
           </Link>
           <Link
             className="rounded-lg border border-sky-400/40 px-3 py-1 text-sm text-sky-300 transition hover:bg-sky-500/10"
             to="/merchant/metrics"
           >
-            前往指标看板
+            Go to Metrics Board
           </Link>
         </Card.Content>
       </Card>
@@ -310,17 +310,17 @@ export default function MerchantPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card variant="secondary" className="panel-card">
           <Card.Content className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-100">创建商品</h2>
+            <h2 className="text-lg font-semibold text-slate-100">Create Product</h2>
             <Input
-              aria-label="商品标题"
-              placeholder="请输入商品名称"
+              aria-label="Product Title"
+              placeholder="Enter product name"
               value={title}
               onChange={(event) => setTitle(event.currentTarget.value)}
               variant="secondary"
             />
             <Input
-              aria-label="商品价格"
-              placeholder="请输入价格（u64）"
+              aria-label="Product Price"
+              placeholder="Enter price (u64)"
               inputMode="numeric"
               value={price}
               onChange={(event) => setPrice(event.currentTarget.value)}
@@ -332,23 +332,23 @@ export default function MerchantPage() {
               isDisabled={!account || !merchantReady || !canCreateProduct || txLoading}
               onPress={onCreateProduct}
             >
-              创建商品
+              Create Product
             </Button>
           </Card.Content>
         </Card>
 
         <Card variant="secondary" className="panel-card">
           <Card.Content className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-100">创建账单</h2>
+            <h2 className="text-lg font-semibold text-slate-100">Create Invoice</h2>
             <label className="block space-y-2 text-sm text-slate-300">
-              <span>选择商品</span>
+              <span>Select Product</span>
               <select
                 data-testid="merchant-product-select"
                 className="w-full rounded-xl border border-white/15 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none"
                 value={selectedProductId}
                 onChange={(event) => setSelectedProductId(event.currentTarget.value)}
               >
-                {products.length === 0 && <option value="">暂无商品</option>}
+                {products.length === 0 && <option value="">No Products</option>}
                 {products.map((product) => (
                   <option key={product.objectId} value={product.objectId}>
                     {product.title} ({product.priceU64.toString()})
@@ -362,7 +362,7 @@ export default function MerchantPage() {
               isDisabled={!account || !merchantReady || !canCreateInvoice || txLoading}
               onPress={onCreateInvoice}
             >
-              创建账单
+              Create Invoice
             </Button>
           </Card.Content>
         </Card>
@@ -371,10 +371,10 @@ export default function MerchantPage() {
       <TxFeedbackCard
         label={
           txKind === "create-product"
-            ? "创建商品交易"
+            ? "Create Product Tx"
             : txKind === "create-invoice"
-              ? "创建账单交易"
-              : "交易反馈"
+              ? "Create Invoice Tx"
+              : "Tx Feedback"
         }
         loading={txLoading}
         error={txError}
@@ -384,49 +384,46 @@ export default function MerchantPage() {
       <Card variant="secondary" className="panel-card">
         <Card.Content className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-slate-100">已创建账单</h2>
+            <h2 className="text-lg font-semibold text-slate-100">Invoices</h2>
             <div className="flex flex-wrap gap-2 text-xs">
               <button
                 type="button"
                 data-testid="merchant-invoice-filter-all"
-                className={`rounded-full border px-3 py-1 transition ${
-                  invoiceFilter === "all"
-                    ? "border-sky-300 bg-sky-500/20 text-sky-100"
-                    : "border-white/20 text-slate-300 hover:bg-white/5"
-                }`}
+                className={`rounded-full border px-3 py-1 transition ${invoiceFilter === "all"
+                  ? "border-sky-300 bg-sky-500/20 text-sky-100"
+                  : "border-white/20 text-slate-300 hover:bg-white/5"
+                  }`}
                 onClick={() => setInvoiceFilter("all")}
               >
-                全部
+                All
               </button>
               <button
                 type="button"
                 data-testid="merchant-invoice-filter-unpaid"
-                className={`rounded-full border px-3 py-1 transition ${
-                  invoiceFilter === "unpaid"
-                    ? "border-amber-300 bg-amber-500/20 text-amber-100"
-                    : "border-white/20 text-slate-300 hover:bg-white/5"
-                }`}
+                className={`rounded-full border px-3 py-1 transition ${invoiceFilter === "unpaid"
+                  ? "border-amber-300 bg-amber-500/20 text-amber-100"
+                  : "border-white/20 text-slate-300 hover:bg-white/5"
+                  }`}
                 onClick={() => setInvoiceFilter("unpaid")}
               >
-                待支付
+                Pending
               </button>
               <button
                 type="button"
                 data-testid="merchant-invoice-filter-paid"
-                className={`rounded-full border px-3 py-1 transition ${
-                  invoiceFilter === "paid"
-                    ? "border-emerald-300 bg-emerald-500/20 text-emerald-100"
-                    : "border-white/20 text-slate-300 hover:bg-white/5"
-                }`}
+                className={`rounded-full border px-3 py-1 transition ${invoiceFilter === "paid"
+                  ? "border-emerald-300 bg-emerald-500/20 text-emerald-100"
+                  : "border-white/20 text-slate-300 hover:bg-white/5"
+                  }`}
                 onClick={() => setInvoiceFilter("paid")}
               >
-                已支付
+                Paid
               </button>
             </div>
           </div>
 
           {filteredInvoices.length === 0 && (
-            <p className="text-sm text-slate-300">当前筛选条件下暂无账单。</p>
+            <p className="text-sm text-slate-300">No invoices under current filter.</p>
           )}
 
           {filteredInvoices.map((invoice) => (
@@ -436,10 +433,10 @@ export default function MerchantPage() {
               className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3"
             >
               <div className="space-y-1">
-                <p className="break-all text-sm text-slate-100">账单 ID：{invoice.objectId}</p>
+                <p className="break-all text-sm text-slate-100">Invoice ID: {invoice.objectId}</p>
                 <p className="break-all text-xs text-slate-400">
-                  金额={invoice.amountU64.toString()} | 状态={formatInvoiceStatus(invoice.status)} |
-                  买家={invoice.buyer ?? "-"}
+                  Amount={invoice.amountU64.toString()} | Status={formatInvoiceStatus(invoice.status)} |
+                  Buyer={invoice.buyer ?? "-"}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -448,13 +445,13 @@ export default function MerchantPage() {
                   className="rounded-lg border border-slate-400/40 px-3 py-1 text-sm text-slate-200 transition hover:bg-slate-500/10"
                   onClick={() => copyText(invoice.objectId)}
                 >
-                  复制ID
+                  Copy ID
                 </button>
                 <Link
                   className="rounded-lg border border-emerald-400/40 px-3 py-1 text-sm text-emerald-300 transition hover:bg-emerald-500/10"
                   to={`/pay/${invoice.objectId}`}
                 >
-                  去支付页
+                  View to Pay
                 </Link>
               </div>
             </div>

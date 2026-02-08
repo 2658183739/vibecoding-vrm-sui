@@ -23,29 +23,29 @@ export function computeQuickstartSteps(entries: RecentTxHistoryEntry[]): DemoSte
   return [
     {
       id: "merchant_flow",
-      title: "创建商品与账单",
-      description: "在商户台创建 Product + Invoice。",
+      title: "Create Product & Invoice",
+      description: "Create Product + Invoice in Merchant Console.",
       actionPath: "/merchant",
       completed: createdProduct && createdInvoice
     },
     {
       id: "mint_pay_flow",
-      title: "USDC 一键支付",
-      description: "完成 Mint(USDC->BrandUSD)+Pay 同一笔交易。",
+      title: "USDC One-Click Pay",
+      description: "Complete Mint (USDC->BrandUSD) + Pay in one transaction.",
       actionPath: "/merchant",
       completed: mintAndPay
     },
     {
       id: "redeem_flow",
-      title: "赎回（T+1）",
-      description: "执行 Burn amount 或 Burn all。",
+      title: "Redeem (T+1)",
+      description: "Execute Burn amount or Burn all.",
       actionPath: "/redeem",
       completed: redeemed
     },
     {
       id: "claim_flow",
-      title: "商户领取收益",
-      description: "执行 Claim 交易并查看状态反馈。",
+      title: "Merchant Claim Revenue",
+      description: "Execute Claim transaction and check status feedback.",
       actionPath: "/merchant/claim",
       completed: claimed
     }

@@ -1,16 +1,16 @@
-﻿# @vibesui/agent（规则驱动 Agent 引擎）
+﻿# @vibesui/agent (Rule-Driven Agent Engine)
 
-该包负责把自然语言输入转换为结构化操作建议，供前端执行。
+This package is responsible for converting natural language inputs into structured action suggestions for frontend execution.
 
-## 主要职责
+## Main Responsibilities
 
-- 解析用户输入与页面上下文
-- 识别意图（PAY / REDEEM / CLAIM / STATUS / HELP）
-- 输出步骤列表与建议动作
-- 可选接入 LLM 增强模式（默认关闭）
-- 提供本地自治编排能力（Local Automation Planner / Guard / Runner）
+- Parse user input and page context
+- Identify intents (PAY / REDEEM / CLAIM / STATUS / HELP)
+- Output step lists and suggested actions
+- Optional LLM enhancement mode (default off)
+- Provide local automation capabilities (Local Automation Planner / Guard / Runner)
 
-## 开发命令
+## Development Commands
 
 ```bash
 pnpm --filter @vibesui/agent dev
@@ -18,9 +18,9 @@ pnpm --filter @vibesui/agent build
 pnpm --filter @vibesui/agent test
 ```
 
-## 设计原则
+## Design Principles
 
-- 默认规则优先，保证可控性与可解释性
-- 交易执行权限始终由前端钱包签名控制
-- 结果结构化输出，方便 UI 直接渲染
-- 本地自动化先“生成计划 + 风险守卫”，再执行
+- Default rules have priority to ensure controllability and explainability
+- Transaction execution permissions are always controlled by frontend wallet signature
+- Structured output results for direct UI rendering
+- Local automation prioritizes "Plan Generation + Risk Guard" before execution

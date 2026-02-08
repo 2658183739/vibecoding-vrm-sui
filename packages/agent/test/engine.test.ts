@@ -64,7 +64,7 @@ describe("CheckoutAgentEngine", () => {
   it("supports Chinese status query intent", async () => {
     const engine = new CheckoutAgentEngine();
     const result = await engine.run({
-      userInput: "帮我查询交易状态 0x1234567890abcdef1234567890abcdef",
+      userInput: "check tx status 0x1234567890abcdef1234567890abcdef",
       context: {
         stableCoinType: "0xstable::coin::COIN",
         balances: {}
@@ -80,7 +80,7 @@ describe("CheckoutAgentEngine", () => {
   it("returns guide steps for project intro query", async () => {
     const engine = new CheckoutAgentEngine();
     const result = await engine.run({
-      userInput: "这个项目有什么功能，怎么演示？",
+      userInput: "What features does this project have, how to demo?",
       context: {
         stableCoinType: "0xstable::coin::COIN",
         balances: {}
@@ -88,14 +88,14 @@ describe("CheckoutAgentEngine", () => {
     });
 
     expect(result.intent).toBe("HELP");
-    expect(result.steps[0]?.title).toContain("项目核心功能");
+    expect(result.steps[0]?.title).toContain("Core Features");
     expect(result.suggestedActions.some((item) => item.actionType === "NAVIGATE")).toBe(true);
   });
 
   it("returns next-step coach guidance in guide mode", async () => {
     const engine = new CheckoutAgentEngine();
     const result = await engine.run({
-      userInput: "下一步我该做什么",
+      userInput: "what to do next",
       context: {
         stableCoinType: "0xstable::coin::COIN",
         balances: {}
@@ -107,13 +107,13 @@ describe("CheckoutAgentEngine", () => {
     });
 
     expect(result.intent).toBe("HELP");
-    expect(result.steps.some((step) => step.title.includes("演示教练"))).toBe(true);
+    expect(result.steps.some((step) => step.title.includes("Demo Coach"))).toBe(true);
   });
 
   it("returns demo orchestration actions for demo request", async () => {
     const engine = new CheckoutAgentEngine();
     const result = await engine.run({
-      userInput: "帮我开始完整演示",
+      userInput: "start full demo",
       context: {
         stableCoinType: "0xstable::coin::COIN",
         balances: {}
@@ -138,7 +138,7 @@ describe("CheckoutAgentEngine", () => {
     const engine = new CheckoutAgentEngine();
     const result = await engine.run(
       {
-        userInput: "我现在有哪些余额",
+        userInput: "what is my balance",
         context: {
           stableCoinType: "0xstable::coin::COIN",
           balances: {},
@@ -154,14 +154,14 @@ describe("CheckoutAgentEngine", () => {
     );
 
     expect(result.intent).toBe("STATUS");
-    expect(result.steps[0]?.title).toContain("读取钱包余额");
+    expect(result.steps[0]?.title).toContain("Read Wallet Balance");
     expect(result.suggestedActions.some((item) => item.actionType === "REDEEM_AMOUNT")).toBe(true);
   });
 
   it("returns config guidance for env/key query", async () => {
     const engine = new CheckoutAgentEngine();
     const result = await engine.run({
-      userInput: "百炼 key 怎么配置？",
+      userInput: "how to config bailian key?",
       context: {
         stableCoinType: "0xstable::coin::COIN",
         balances: {}
@@ -169,14 +169,14 @@ describe("CheckoutAgentEngine", () => {
     });
 
     expect(result.intent).toBe("HELP");
-    expect(result.steps.some((step) => step.title.includes("配置指引"))).toBe(true);
+    expect(result.steps.some((step) => step.title.includes("Config Guide"))).toBe(true);
     expect(result.suggestedActions.some((item) => item.actionType === "SHOW_CONTEXT")).toBe(true);
   });
 
   it("returns playbook action for one-click serial request", async () => {
     const engine = new CheckoutAgentEngine();
     const result = await engine.run({
-      userInput: "请一键连续执行剧本",
+      userInput: "please run full playbook",
       context: {
         stableCoinType: "0xstable::coin::COIN",
         balances: {}

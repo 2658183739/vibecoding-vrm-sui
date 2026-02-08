@@ -21,7 +21,7 @@ import { ConnectWalletButton, useWalletAccount } from "../lib/wallet";
 function formatMetricsError(error: unknown): string {
   const message = parseErrorMessage(error);
   if (/rpc|network|timeout|fetch|503|502|500/i.test(message)) {
-    return `RPC 请求异常：${message}`;
+    return `RPC Request Exception: ${message}`;
   }
   return message;
 }
@@ -61,7 +61,7 @@ export default function MerchantMetricsPage() {
 
   const refreshMetrics = useCallback(async () => {
     if (!accountAddress) {
-      setError("请先连接钱包。");
+      setError("Please connect wallet first.");
       setSupplyMetrics(null);
       setBusinessMetrics(null);
       setEvents([]);
@@ -124,9 +124,9 @@ export default function MerchantMetricsPage() {
       <Card variant="secondary" className="panel-card shadow-[0_20px_60px_rgba(5,12,22,0.45)]">
         <Card.Content className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">商户指标看板</h1>
+            <h1 className="text-2xl font-bold text-slate-100">Merchant Metrics</h1>
             <p className="text-sm text-slate-300">
-              展示稳定币供给、账单业务指标与链上事件，便于评审快速验证真实业务闭环。
+              Show Stablecoin Supply, Business Metrics, and On-chain Events for quick verification.
             </p>
           </div>
           <ConnectWalletButton />
@@ -135,14 +135,14 @@ export default function MerchantMetricsPage() {
 
       <Card variant="secondary" className="panel-card">
         <Card.Content className="flex items-center justify-between">
-          <p className="text-sm text-slate-300">网络：{appConfig.stableLayer.network}</p>
+          <p className="text-sm text-slate-300">Network: {appConfig.stableLayer.network}</p>
           <Button
             data-testid="metrics-refresh-btn"
             variant="primary"
             isDisabled={!account || loading}
             onPress={() => refreshMetrics()}
           >
-            {loading ? "刷新中..." : "刷新数据"}
+            {loading ? "Refreshing..." : "Refresh Data"}
           </Button>
         </Card.Content>
       </Card>
@@ -156,7 +156,7 @@ export default function MerchantMetricsPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card variant="secondary" className="panel-card">
           <Card.Content>
-            <p className="text-sm text-slate-400">支付转化率</p>
+            <p className="text-sm text-slate-400">Payment Rate</p>
             <p className="text-2xl font-semibold text-emerald-300">
               {businessMetrics ? formatRate(businessMetrics.paymentRatePercent) : "-"}
             </p>
@@ -164,7 +164,7 @@ export default function MerchantMetricsPage() {
         </Card>
         <Card variant="secondary" className="panel-card">
           <Card.Content>
-            <p className="text-sm text-slate-400">已支付 GMV (u64)</p>
+            <p className="text-sm text-slate-400">Paid GMV (u64)</p>
             <p className="break-all text-xl font-semibold text-slate-100">
               {businessMetrics?.paidGmvU64.toString() ?? "-"}
             </p>
@@ -172,7 +172,7 @@ export default function MerchantMetricsPage() {
         </Card>
         <Card variant="secondary" className="panel-card">
           <Card.Content>
-            <p className="text-sm text-slate-400">待支付 GMV (u64)</p>
+            <p className="text-sm text-slate-400">Pending GMV (u64)</p>
             <p className="break-all text-xl font-semibold text-amber-300">
               {businessMetrics?.pendingGmvU64.toString() ?? "-"}
             </p>
@@ -183,7 +183,7 @@ export default function MerchantMetricsPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card variant="secondary" className="panel-card">
           <Card.Content className="space-y-2">
-            <p className="text-sm text-slate-400">总供给（全部稳定币）</p>
+            <p className="text-sm text-slate-400">Total Supply (All Stablecoins)</p>
             <p className="break-all text-xl font-semibold text-slate-100">
               {supplyMetrics?.totalSupply ?? "-"}
             </p>
@@ -192,7 +192,7 @@ export default function MerchantMetricsPage() {
 
         <Card variant="secondary" className="panel-card">
           <Card.Content className="space-y-2">
-            <p className="text-sm text-slate-400">按币种供给</p>
+            <p className="text-sm text-slate-400">Supply by Type</p>
             <p className="break-all text-xs text-slate-500">
               {supplyMetrics?.coinType ?? appConfig.stableLayer.stableCoinType ?? "-"}
             </p>
@@ -205,8 +205,8 @@ export default function MerchantMetricsPage() {
 
       <Card variant="secondary" className="panel-card">
         <Card.Content className="space-y-3 text-sm text-slate-200">
-          <p className="font-semibold text-slate-100">最近链上事件（Checkout）</p>
-          {eventRows.length === 0 && <p className="text-slate-400">暂无事件。</p>}
+          <p className="font-semibold text-slate-100">Recent On-chain Events (Checkout)</p>
+          {eventRows.length === 0 && <p className="text-slate-400">No events.</p>}
           {eventRows.map((eventItem) => (
             <div
               key={eventItem.id}
@@ -216,14 +216,14 @@ export default function MerchantMetricsPage() {
               <p className="text-sm text-slate-100">
                 {eventItem.eventName} · {eventItem.txDigest.slice(0, 10)}...
               </p>
-              <p className="break-all text-xs text-slate-400">发送者：{eventItem.sender || "-"}</p>
+              <p className="break-all text-xs text-slate-400">Sender: {eventItem.sender || "-"}</p>
               <a
                 href={toExplorerTxUrl(eventItem.txDigest)}
                 target="_blank"
                 rel="noreferrer"
                 className="text-emerald-300 underline"
               >
-                在区块浏览器验证该事件
+                Verify in Explorer
               </a>
             </div>
           ))}

@@ -23,9 +23,9 @@ function downloadMarkdown(filename: string, content: string): void {
 }
 
 export default function AutomationPage() {
-  const [goal, setGoal] = useState("整理 Downloads，生成分类报告，并保留冲突文件。");
+  const [goal, setGoal] = useState("Organize Downloads, report classification, keeping conflicting files.");
   const [workspaceRoot, setWorkspaceRoot] = useState("E:/competition/VibeSui黑客松");
-  const [downloadsDir, setDownloadsDir] = useState("C:/Users/<你的用户名>/Downloads");
+  const [downloadsDir, setDownloadsDir] = useState("C:/Users/<username>/Downloads");
   const [allowedPrefixesText, setAllowedPrefixesText] = useState("node,git,ffmpeg,tar,pnpm");
   const [dryRun, setDryRun] = useState(true);
   const [allowNetwork, setAllowNetwork] = useState(false);
@@ -51,7 +51,7 @@ export default function AutomationPage() {
     setError(null);
     const cleanGoal = goal.trim();
     if (!cleanGoal) {
-      setError("请先输入任务目标。");
+      setError("Please input task goal first.");
       return;
     }
 
@@ -75,7 +75,7 @@ export default function AutomationPage() {
       setSession(draft);
       setRefreshKey((prev) => prev + 1);
     } catch (nextError) {
-      const message = nextError instanceof Error ? nextError.message : "计划生成失败。";
+      const message = nextError instanceof Error ? nextError.message : "Failed to generate plan.";
       setError(message);
     }
   }
@@ -100,7 +100,7 @@ export default function AutomationPage() {
       setSession(completed);
       setRefreshKey((prev) => prev + 1);
     } catch (nextError) {
-      const message = nextError instanceof Error ? nextError.message : "执行失败。";
+      const message = nextError instanceof Error ? nextError.message : "Execution failed.";
       setError(message);
     } finally {
       setRunLoading(false);
@@ -117,10 +117,9 @@ export default function AutomationPage() {
       <Card variant="secondary" className="panel-card shadow-[0_20px_60px_rgba(5,12,22,0.45)]">
         <Card.Content className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-slate-100">本地自治控制台</h1>
+            <h1 className="text-2xl font-bold text-slate-100">Local Automation Console</h1>
             <p className="text-sm text-slate-300">
-              以安全策略驱动本地任务编排，先生成可审计计划，再执行。保留现有 Sui 与 StableLayer
-              交易链路，不做替换。
+              Securely orchestrate local tasks with audit plans before execution. Preserves existing Sui & StableLayer transaction links without replacement.
             </p>
           </div>
           <ConnectWalletButton />
@@ -130,20 +129,20 @@ export default function AutomationPage() {
       <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
         <Card variant="secondary" className="panel-card">
           <Card.Content className="space-y-4">
-            <p className="text-lg font-semibold text-slate-100">1) 定义任务目标</p>
+            <p className="text-lg font-semibold text-slate-100">1) Define Goal</p>
             <label className="block space-y-2 text-sm text-slate-300">
-              <span>任务目标</span>
+              <span>Goal</span>
               <textarea
                 className="h-24 w-full rounded-xl border border-white/20 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none"
                 value={goal}
                 onChange={(event) => setGoal(event.currentTarget.value)}
-                placeholder="例如：整理下载目录并生成分类报告"
+                placeholder="e.g.: Organize Downloads and generate report"
               />
             </label>
 
             <div className="grid gap-3 md:grid-cols-2">
               <label className="block space-y-1">
-                <span className="text-xs text-slate-400">工作区目录</span>
+                <span className="text-xs text-slate-400">Workspace Root</span>
                 <Input
                   aria-label="workspace root"
                   value={workspaceRoot}
@@ -152,7 +151,7 @@ export default function AutomationPage() {
                 />
               </label>
               <label className="block space-y-1">
-                <span className="text-xs text-slate-400">下载目录</span>
+                <span className="text-xs text-slate-400">Downloads Dir</span>
                 <Input
                   aria-label="downloads dir"
                   value={downloadsDir}
@@ -163,7 +162,7 @@ export default function AutomationPage() {
             </div>
 
             <label className="block space-y-1">
-              <span className="text-xs text-slate-400">允许命令前缀（逗号分隔）</span>
+              <span className="text-xs text-slate-400">Allowed Command Prefixes (comma separated)</span>
               <Input
                 aria-label="allowed command prefixes"
                 value={allowedPrefixesText}
@@ -179,7 +178,7 @@ export default function AutomationPage() {
                   checked={dryRun}
                   onChange={(event) => setDryRun(event.currentTarget.checked)}
                 />
-                Dry Run（仅模拟）
+                Dry Run (Simulate Only)
               </label>
               <label className="inline-flex items-center gap-2">
                 <input
@@ -187,7 +186,7 @@ export default function AutomationPage() {
                   checked={allowNetwork}
                   onChange={(event) => setAllowNetwork(event.currentTarget.checked)}
                 />
-                允许网络步骤
+                Allow Network Steps
               </label>
               <label className="inline-flex items-center gap-2">
                 <input
@@ -195,23 +194,23 @@ export default function AutomationPage() {
                   checked={autoApproveHighRisk}
                   onChange={(event) => setAutoApproveHighRisk(event.currentTarget.checked)}
                 />
-                自动批准高风险步骤
+                Auto Approve High Risk Steps
               </label>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Button variant="primary" onPress={onBuildPlan}>
-                生成计划
+                Generate Plan
               </Button>
               <Button
                 variant="secondary"
                 isDisabled={!session || runLoading}
                 onPress={() => onRunPlan()}
               >
-                {runLoading ? "执行中..." : "执行计划"}
+                {runLoading ? "Running..." : "Execute Plan"}
               </Button>
               <Button variant="secondary" isDisabled={!session} onPress={() => session && downloadMarkdown(`local-automation-${session.plan.id}.md`, session.markdown)}>
-                导出 Markdown
+                Export Markdown
               </Button>
             </div>
             {error && <p className="text-sm text-red-300">{error}</p>}
@@ -220,22 +219,22 @@ export default function AutomationPage() {
 
         <Card variant="secondary" className="panel-card">
           <Card.Content className="space-y-3 text-sm text-slate-200">
-            <p className="text-lg font-semibold text-slate-100">2) 安全守卫状态</p>
-            {!session && <p className="text-slate-400">先生成计划后查看守卫检查结果。</p>}
+            <p className="text-lg font-semibold text-slate-100">2) Guard Status</p>
+            {!session && <p className="text-slate-400">Generate plan first to see guard results.</p>}
             {session && (
               <>
                 <p>
-                  计划：<span className="text-slate-100">{session.plan.intent}</span>
+                  Plan: <span className="text-slate-100">{session.plan.intent}</span>
                 </p>
                 <p>
-                  守卫结论：
+                  Guard Conclusion:
                   <span className={session.guard.safe ? "text-emerald-300" : "text-red-300"}>
-                    {session.guard.safe ? "通过" : "阻断"}
+                    {session.guard.safe ? "PASSED" : "BLOCKED"}
                   </span>
                 </p>
                 {session.guard.warnings.length > 0 && (
                   <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2">
-                    <p className="font-semibold text-amber-200">警告</p>
+                    <p className="font-semibold text-amber-200">Warnings</p>
                     {session.guard.warnings.map((item) => (
                       <p key={item} className="text-amber-100">
                         - {item}
@@ -245,7 +244,7 @@ export default function AutomationPage() {
                 )}
                 {session.guard.blockedReasons.length > 0 && (
                   <div className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2">
-                    <p className="font-semibold text-red-200">阻断原因</p>
+                    <p className="font-semibold text-red-200">Blocked Reasons</p>
                     {session.guard.blockedReasons.map((item) => (
                       <p key={item} className="text-red-100">
                         - {item}
@@ -261,8 +260,8 @@ export default function AutomationPage() {
 
       <Card variant="secondary" className="panel-card">
         <Card.Content className="space-y-3">
-          <p className="text-lg font-semibold text-slate-100">3) 计划步骤</p>
-          {!session && <p className="text-sm text-slate-400">暂无计划。</p>}
+          <p className="text-lg font-semibold text-slate-100">3) Plan Steps</p>
+          {!session && <p className="text-sm text-slate-400">No plan yet.</p>}
           {session?.plan.steps.map((step, index) => (
             <div
               key={step.id}
@@ -285,9 +284,9 @@ export default function AutomationPage() {
       {session?.result && (
         <Card variant="secondary" className="panel-card">
           <Card.Content className="space-y-3 text-sm text-slate-200">
-            <p className="text-lg font-semibold text-slate-100">4) 执行结果</p>
+            <p className="text-lg font-semibold text-slate-100">4) Execution Result</p>
             <p>
-              状态：
+              Status:
               <span
                 className={
                   session.result.status === "completed" ? "text-emerald-300" : "text-amber-300"
@@ -314,13 +313,13 @@ export default function AutomationPage() {
       <Card variant="secondary" className="panel-card">
         <Card.Content className="space-y-3 text-sm text-slate-200">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-lg font-semibold text-slate-100">本地历史记录</p>
+            <p className="text-lg font-semibold text-slate-100">Local History</p>
             <Button variant="secondary" onPress={onClearHistory} isDisabled={history.length === 0}>
-              清空历史
+              Clear History
             </Button>
           </div>
 
-          {history.length === 0 && <p className="text-slate-400">暂无历史记录。</p>}
+          {history.length === 0 && <p className="text-slate-400">No history.</p>}
 
           {history.map((item) => (
             <div
@@ -337,7 +336,7 @@ export default function AutomationPage() {
                   variant="secondary"
                   onPress={() => downloadMarkdown(`local-automation-${item.plan.id}.md`, item.markdown)}
                 >
-                  导出此条 Markdown
+                  Export Markdown
                 </Button>
               </div>
             </div>

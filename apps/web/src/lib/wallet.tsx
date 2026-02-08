@@ -49,14 +49,14 @@ export function ConnectWalletButton() {
   if (isSmokeMode()) {
     return (
       <Button variant="secondary" isDisabled>
-        冒烟测试钱包已连接
+        Smoke Test Wallet Connected
       </Button>
     );
   }
 
   const shortAddress = account?.address
     ? `${account.address.slice(0, 6)}...${account.address.slice(-4)}`
-    : "未连接";
+    : "Not Connected";
 
   async function onConnect(walletName: string): Promise<void> {
     const wallet = wallets.find((item) => item.name === walletName);
@@ -83,11 +83,11 @@ export function ConnectWalletButton() {
     <>
       <div className="flex flex-wrap items-center gap-2">
         <Button variant={connection.isConnected ? "secondary" : "primary"} onPress={() => setOpen(true)}>
-          {connection.isConnected ? `已连接 ${shortAddress}` : "连接钱包"}
+          {connection.isConnected ? `Connected ${shortAddress}` : "Connect Wallet"}
         </Button>
         {connection.isConnected && (
           <Button variant="secondary" onPress={() => void onDisconnect()}>
-            断开
+            Disconnect
           </Button>
         )}
       </div>
@@ -101,17 +101,17 @@ export function ConnectWalletButton() {
             <Card.Content className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-base font-semibold text-slate-100">钱包连接</p>
-                  <p className="text-xs text-slate-400">选择钱包后会触发浏览器钱包签名流程</p>
+                  <p className="text-base font-semibold text-slate-100">Connect Wallet</p>
+                  <p className="text-xs text-slate-400">Selecting a wallet will trigger the browser wallet signature flow.</p>
                 </div>
                 <Button variant="secondary" onPress={() => setOpen(false)}>
-                  关闭
+                  Close
                 </Button>
               </div>
 
               {wallets.length === 0 && (
                 <p className="text-sm text-amber-200">
-                  未检测到可用钱包。请先安装 Sui 钱包扩展（如 Slush Wallet）。
+                  No wallets detected. Please install a Sui wallet extension (e.g. Slush Wallet).
                 </p>
               )}
 
@@ -131,12 +131,12 @@ export function ConnectWalletButton() {
                         <span className="text-sm text-slate-100">{wallet.name}</span>
                         <span className="text-xs text-slate-400">
                           {busy
-                            ? "连接中..."
+                            ? "Connecting..."
                             : connected
-                              ? "当前已连接"
+                              ? "Connected"
                               : wallet.accounts.length > 0
-                                ? `已授权 ${wallet.accounts.length} 个账户`
-                                : "未授权"}
+                                ? `Authorized ${wallet.accounts.length} accounts`
+                                : "Unauthorized"}
                         </span>
                       </button>
                     );

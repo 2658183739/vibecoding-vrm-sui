@@ -130,9 +130,9 @@ export async function runAgentFullPlaybook(
   try {
     emit(steps, input.onStepUpdate, {
       key: "create_product",
-      title: "创建商品",
+      title: "Create Product",
       status: "in_progress",
-      details: `标题=${title}，价格=${priceU64.toString()}`
+      details: `Title=${title}, Price=${priceU64.toString()}`
     });
 
     if (isSmokeMode()) {
@@ -144,16 +144,16 @@ export async function runAgentFullPlaybook(
           priceU64
         })
       );
-      ensureSuccessTx(feedback, "创建商品失败。");
+      ensureSuccessTx(feedback, "Create Product Failed.");
       lastTx = feedback;
 
       const list = smokeListProducts(input.owner);
       productId = list[list.length - 1]?.objectId;
-      if (!productId) throw new Error("创建商品后未找到 productId。");
+      if (!productId) throw new Error("Product ID not found after creation.");
 
       emit(steps, input.onStepUpdate, {
         key: "create_product",
-        title: "创建商品",
+        title: "Create Product",
         status: "success",
         details: `productId=${productId}`,
         tx: feedback,
@@ -166,7 +166,7 @@ export async function runAgentFullPlaybook(
         () => buildCreateProductTx({ title, priceU64 }),
         input.signAndExecuteTransaction
       );
-      ensureSuccessTx(feedback, "创建商品失败。");
+      ensureSuccessTx(feedback, "Create Product Failed.");
       lastTx = feedback;
 
       productId = await findCreatedObjectIdByStructName(feedback.digest, appConfig.contract.productTypeName);
@@ -174,11 +174,11 @@ export async function runAgentFullPlaybook(
         const after = await fetchProducts(input.owner);
         productId = after.find((item) => !before.has(item.objectId))?.objectId;
       }
-      if (!productId) throw new Error("创建商品后未解析到 productId。");
+      if (!productId) throw new Error("Product ID not resolved after creation.");
 
       emit(steps, input.onStepUpdate, {
         key: "create_product",
-        title: "创建商品",
+        title: "Create Product",
         status: "success",
         details: `productId=${productId}`,
         tx: feedback,
@@ -188,7 +188,7 @@ export async function runAgentFullPlaybook(
 
     emit(steps, input.onStepUpdate, {
       key: "create_invoice",
-      title: "创建账单",
+      title: "Create Invoice",
       status: "in_progress",
       details: `productId=${productId}`
     });
@@ -201,16 +201,16 @@ export async function runAgentFullPlaybook(
           productId: productId!
         })
       );
-      ensureSuccessTx(feedback, "创建账单失败。");
+      ensureSuccessTx(feedback, "Create Invoice Failed.");
       lastTx = feedback;
 
       const list = smokeListInvoices(input.owner);
       invoiceId = list[list.length - 1]?.objectId;
-      if (!invoiceId) throw new Error("创建账单后未找到 invoiceId。");
+      if (!invoiceId) throw new Error("Invoice ID not found after creation.");
 
       emit(steps, input.onStepUpdate, {
         key: "create_invoice",
-        title: "创建账单",
+        title: "Create Invoice",
         status: "success",
         details: `invoiceId=${invoiceId}`,
         tx: feedback,
@@ -227,7 +227,7 @@ export async function runAgentFullPlaybook(
           }),
         input.signAndExecuteTransaction
       );
-      ensureSuccessTx(feedback, "创建账单失败。");
+      ensureSuccessTx(feedback, "Create Invoice Failed.");
       lastTx = feedback;
 
       invoiceId = await findCreatedObjectIdByStructName(feedback.digest, appConfig.contract.invoiceTypeName);
@@ -235,11 +235,11 @@ export async function runAgentFullPlaybook(
         const after = await fetchInvoices(input.owner);
         invoiceId = after.find((item) => !before.has(item.objectId))?.objectId;
       }
-      if (!invoiceId) throw new Error("创建账单后未解析到 invoiceId。");
+      if (!invoiceId) throw new Error("Invoice ID not resolved after creation.");
 
       emit(steps, input.onStepUpdate, {
         key: "create_invoice",
-        title: "创建账单",
+        title: "Create Invoice",
         status: "success",
         details: `invoiceId=${invoiceId}`,
         tx: feedback,
@@ -249,14 +249,14 @@ export async function runAgentFullPlaybook(
 
     emit(steps, input.onStepUpdate, {
       key: "mint_and_pay",
-      title: "执行 Mint+Pay",
+      title: "Execute Mint+Pay",
       status: "in_progress",
       details: `invoiceId=${invoiceId}`
     });
 
     if (isSmokeMode()) {
       const smokeInvoice = smokeGetInvoice(invoiceId!);
-      if (!smokeInvoice) throw new Error("账单不存在，无法执行 Mint+Pay。");
+      if (!smokeInvoice) throw new Error("Invoice not found, cannot execute Mint+Pay.");
       const feedback = toTxFeedbackFromSmoke(
         smokePayInvoice({
           invoiceId: smokeInvoice.objectId,
@@ -264,12 +264,12 @@ export async function runAgentFullPlaybook(
           amountU64: smokeInvoice.amountU64
         })
       );
-      ensureSuccessTx(feedback, "Mint+Pay 执行失败。");
+      ensureSuccessTx(feedback, "Mint+Pay Failed.");
       lastTx = feedback;
 
       emit(steps, input.onStepUpdate, {
         key: "mint_and_pay",
-        title: "执行 Mint+Pay",
+        title: "Execute Mint+Pay",
         status: "success",
         details: `digest=${feedback.digest}`,
         tx: feedback,
@@ -288,12 +288,12 @@ export async function runAgentFullPlaybook(
         () => built.tx,
         input.signAndExecuteTransaction
       );
-      ensureSuccessTx(feedback, "Mint+Pay 执行失败。");
+      ensureSuccessTx(feedback, "Mint+Pay Failed.");
       lastTx = feedback;
 
       emit(steps, input.onStepUpdate, {
         key: "mint_and_pay",
-        title: "执行 Mint+Pay",
+        title: "Execute Mint+Pay",
         status: "success",
         details: `digest=${feedback.digest}`,
         tx: feedback,
@@ -303,9 +303,9 @@ export async function runAgentFullPlaybook(
 
     emit(steps, input.onStepUpdate, {
       key: "burn",
-      title: "执行 Burn",
+      title: "Execute Burn",
       status: "in_progress",
-      details: "优先尝试全部赎回。"
+      details: "Try redeem all first."
     });
 
     if (isSmokeMode()) {
@@ -320,9 +320,9 @@ export async function runAgentFullPlaybook(
       if (feedback.status !== "success") {
         emit(steps, input.onStepUpdate, {
           key: "burn",
-          title: "执行 Burn",
+          title: "Execute Burn",
           status: "failure",
-          details: feedback.errorMessage || "Burn 失败。",
+          details: feedback.errorMessage || "Burn Failed.",
           tx: feedback
         });
         return {
@@ -331,13 +331,13 @@ export async function runAgentFullPlaybook(
           productId,
           invoiceId,
           lastTx: feedback,
-          errorMessage: feedback.errorMessage || "Burn 失败。"
+          errorMessage: feedback.errorMessage || "Burn Failed."
         };
       }
       lastTx = feedback;
       emit(steps, input.onStepUpdate, {
         key: "burn",
-        title: "执行 Burn",
+        title: "Execute Burn",
         status: "success",
         details: `digest=${feedback.digest}`,
         tx: feedback
@@ -345,16 +345,16 @@ export async function runAgentFullPlaybook(
     } else {
       const stableCoinType = appConfig.stableLayer.stableCoinType;
       if (!stableCoinType) {
-        throw new Error("缺少 VITE_STABLE_LAYER_STABLE_COIN_TYPE 配置。");
+        throw new Error("Missing VITE_STABLE_LAYER_STABLE_COIN_TYPE config.");
       }
 
       const balance = await fetchCoinBalance(input.owner, stableCoinType);
       if (balance <= 0n) {
         emit(steps, input.onStepUpdate, {
           key: "burn",
-          title: "执行 Burn",
+          title: "Execute Burn",
           status: "skipped",
-          details: "当前 BrandUSD 余额为 0，已跳过赎回步骤。"
+          details: "BrandUSD balance is 0, skip redemption."
         });
       } else {
         const built = await buildBurnTx({ owner: input.owner, mode: "all" });
@@ -363,11 +363,11 @@ export async function runAgentFullPlaybook(
           () => built.tx,
           input.signAndExecuteTransaction
         );
-        ensureSuccessTx(feedback, "Burn 失败。");
+        ensureSuccessTx(feedback, "Burn Failed.");
         lastTx = feedback;
         emit(steps, input.onStepUpdate, {
           key: "burn",
-          title: "执行 Burn",
+          title: "Execute Burn",
           status: "success",
           details: `digest=${feedback.digest}`,
           tx: feedback
@@ -377,18 +377,18 @@ export async function runAgentFullPlaybook(
 
     emit(steps, input.onStepUpdate, {
       key: "claim",
-      title: "执行 Claim",
+      title: "Execute Claim",
       status: "in_progress",
-      details: "发起收益领取交易。"
+      details: "Initiate claim revenue transaction."
     });
 
     if (isSmokeMode()) {
       const feedback = toTxFeedbackFromSmoke(smokeClaim(input.owner));
-      ensureSuccessTx(feedback, "Claim 失败。");
+      ensureSuccessTx(feedback, "Claim Failed.");
       lastTx = feedback;
       emit(steps, input.onStepUpdate, {
         key: "claim",
-        title: "执行 Claim",
+        title: "Execute Claim",
         status: "success",
         details: `digest=${feedback.digest}`,
         tx: feedback
@@ -400,11 +400,11 @@ export async function runAgentFullPlaybook(
         () => claimTx,
         input.signAndExecuteTransaction
       );
-      ensureSuccessTx(feedback, "Claim 失败。");
+      ensureSuccessTx(feedback, "Claim Failed.");
       lastTx = feedback;
       emit(steps, input.onStepUpdate, {
         key: "claim",
-        title: "执行 Claim",
+        title: "Execute Claim",
         status: "success",
         details: `digest=${feedback.digest}`,
         tx: feedback
@@ -422,7 +422,7 @@ export async function runAgentFullPlaybook(
     const message = parseErrorMessage(error);
     const fallback: PlaybookStepUpdate = {
       key: "claim",
-      title: "剧本终止",
+      title: "Playbook Aborted",
       status: "failure",
       details: message
     };

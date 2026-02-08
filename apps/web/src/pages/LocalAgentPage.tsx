@@ -110,11 +110,11 @@ export default function LocalAgentPage() {
       const result = await getLocalAgentHealth();
       setHealthData(result);
       setHealthStatus(result.ok ? "connected" : "disconnected");
-      if (!result.ok) pushNotice("error", "本地 Agent 返回异常状态。");
+      if (!result.ok) pushNotice("error", "Local Agent returned abnormal status.");
     } catch (error) {
       setHealthStatus("disconnected");
       setHealthData(null);
-      const message = error instanceof Error ? error.message : "无法连接本地 Agent。";
+      const message = error instanceof Error ? error.message : "Cannot connect to Local Agent.";
       pushNotice("error", message);
     }
   }
@@ -125,9 +125,9 @@ export default function LocalAgentPage() {
       const result = await getLocalAgentConfig();
       setAgentConfig(result);
       setAllowlistText(formatAllowlistInput(result.domainAllowlist));
-      pushNotice("success", "已读取本地 Agent 配置。");
+      pushNotice("success", "Local Agent config loaded.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "读取本地配置失败。";
+      const message = error instanceof Error ? error.message : "Failed to load local config.";
       pushNotice("error", message);
     } finally {
       setLoadingConfig(false);
@@ -151,11 +151,11 @@ export default function LocalAgentPage() {
       pushNotice(
         "success",
         llmEnabled
-          ? "配置已应用到本地 Agent。"
-          : "配置已应用：当前未启用 LLM（provider=none 或 API Key 为空）。"
+          ? "Config applied to Local Agent."
+          : "Config applied: LLM disabled (provider=none or empty API Key)."
       );
     } catch (error) {
-      const message = error instanceof Error ? error.message : "应用配置失败。";
+      const message = error instanceof Error ? error.message : "Failed to apply config.";
       pushNotice("error", message);
     } finally {
       setApplyingConfig(false);
@@ -164,7 +164,7 @@ export default function LocalAgentPage() {
 
   async function openCurrentInvoiceInControlledBrowser(): Promise<void> {
     if (!isPayPage) {
-      pushNotice("info", "当前不在 /pay/:invoiceId 页面，无法执行该操作。");
+      pushNotice("info", "Not on /pay/:invoiceId page, operation unavailable.");
       return;
     }
 
@@ -174,13 +174,13 @@ export default function LocalAgentPage() {
       if (result.fallbackUsed) {
         pushNotice(
           "info",
-          `OpenClaw 不可用，已回退系统浏览器。${result.warning ? `原因：${result.warning}` : ""}`
+          `OpenClaw unavailable, fell back to system browser. ${result.warning ? `Reason: ${result.warning}` : ""}`
         );
       } else {
-        pushNotice("success", "已在受控浏览器中打开当前账单页面。");
+        pushNotice("success", "Opened current invoice page in controlled browser.");
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "打开受控浏览器失败。";
+      const message = error instanceof Error ? error.message : "Failed to open controlled browser.";
       pushNotice("error", message);
     } finally {
       setOpening(false);
@@ -199,32 +199,32 @@ export default function LocalAgentPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
       <Card variant="secondary" className="panel-card">
         <Card.Content className="space-y-3">
-          <h1 className="text-2xl font-bold text-slate-100">Local Agent 集成</h1>
+          <h1 className="text-2xl font-bold text-slate-100">Local Agent Integration</h1>
           <p className="text-sm text-slate-300">
-            管理本地 Agent 连接、白名单与 LLM 设置，并触发受控浏览器打开当前账单页面。
+            Manage Local Agent connection, allowlist, and LLM settings, and trigger controlled browser to open current invoice.
           </p>
           <div
             className={`inline-flex items-center rounded-full border px-3 py-1 text-xs ${statusBadgeClass(healthStatus)}`}
           >
-            连接状态：
+            Connection Status:
             {healthStatus === "connected"
-              ? "已连接"
+              ? "Connected"
               : healthStatus === "checking"
-                ? "检查中"
-                : "未连接"}
+                ? "Checking"
+                : "Disconnected"}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onPress={() => void refreshHealth()}>
-              刷新连接状态
+              Refresh Status
             </Button>
             <Button variant="secondary" isDisabled={loadingConfig} onPress={() => void refreshConfig()}>
-              {loadingConfig ? "读取中..." : "读取本地配置"}
+              {loadingConfig ? "Loading..." : "Load Local Config"}
             </Button>
           </div>
           <div className="text-xs text-slate-400">
-            <p>Agent 地址：`http://localhost:3777`</p>
-            <p>版本：{healthData?.version || "-"}</p>
-            <p>时间：{healthData?.timestamp || "-"}</p>
+            <p>Agent Addr: `http://localhost:3777`</p>
+            <p>Version: {healthData?.version || "-"}</p>
+            <p>Time: {healthData?.timestamp || "-"}</p>
           </div>
         </Card.Content>
       </Card>
@@ -233,7 +233,7 @@ export default function LocalAgentPage() {
         <Card.Content className="space-y-4">
           <p className="text-lg font-semibold text-slate-100">Domain Allowlist</p>
           <p className="text-xs text-slate-400">
-            每行一个域名或 origin（例如 `localhost`、`http://localhost:5173`）。
+            One domain or origin per line (e.g. `localhost`, `http://localhost:5173`).
           </p>
           <textarea
             className="h-40 w-full rounded-xl border border-white/15 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none"
@@ -241,15 +241,15 @@ export default function LocalAgentPage() {
             onChange={(event) => setAllowlistText(event.currentTarget.value)}
             placeholder={"localhost\nhttp://localhost:5173\n2658183739.github.io"}
           />
-          <p className="text-xs text-slate-400">当前后端配置项数量：{agentConfig?.domainAllowlist.length || 0}</p>
+          <p className="text-xs text-slate-400">Current Config Item Count: {agentConfig?.domainAllowlist.length || 0}</p>
         </Card.Content>
       </Card>
 
       <Card variant="secondary" className="panel-card">
         <Card.Content className="space-y-4">
-          <p className="text-lg font-semibold text-slate-100">LLM 设置（可选）</p>
+          <p className="text-lg font-semibold text-slate-100">LLM Settings (Optional)</p>
           <p className="text-xs text-slate-400">
-            API Key 仅存于当前浏览器 localStorage，不会写入 Git。应用配置时只会提交 provider 与 llmEnabled。
+            API Key is saved in browser localStorage only, not committed to Git. Only provider and llmEnabled are submitted when applying config.
           </p>
           <label className="block space-y-1">
             <span className="text-xs text-slate-400">Provider</span>
@@ -268,14 +268,14 @@ export default function LocalAgentPage() {
           <Input
             aria-label="Local agent llm api key"
             type="password"
-            placeholder="输入 API Key（仅本地浏览器保存）"
+            placeholder="Enter API Key (Saved locally only)"
             value={apiKey}
             onChange={(event) => setApiKey(event.currentTarget.value)}
             variant="secondary"
           />
           <div className="flex flex-wrap gap-2">
             <Button variant="primary" isDisabled={applyingConfig} onPress={() => void applyConfigToLocalAgent()}>
-              {applyingConfig ? "应用中..." : "应用到本地 Agent"}
+              {applyingConfig ? "Applying..." : "Apply to Local Agent"}
             </Button>
           </div>
         </Card.Content>
@@ -283,17 +283,17 @@ export default function LocalAgentPage() {
 
       <Card variant="secondary" className="panel-card">
         <Card.Content className="space-y-3">
-          <p className="text-lg font-semibold text-slate-100">受控浏览器动作</p>
-          <p className="text-xs text-slate-400">当前路径：{location.pathname}</p>
+          <p className="text-lg font-semibold text-slate-100">Controlled Browser Actions</p>
+          <p className="text-xs text-slate-400">Current Path: {location.pathname}</p>
           <Button
             variant="primary"
             isDisabled={!isPayPage || opening}
             onPress={() => void openCurrentInvoiceInControlledBrowser()}
           >
-            {opening ? "处理中..." : "Open current invoice in controlled browser"}
+            {opening ? "Processing..." : "Open current invoice in controlled browser"}
           </Button>
           {!isPayPage && (
-            <p className="text-xs text-amber-300">仅在 /pay/:invoiceId 页面可用，请先进入账单支付页。</p>
+            <p className="text-xs text-amber-300">Only available on /pay/:invoiceId page. Please go to invoice payment page first.</p>
           )}
         </Card.Content>
       </Card>
@@ -302,13 +302,12 @@ export default function LocalAgentPage() {
         {notices.map((notice) => (
           <div
             key={notice.id}
-            className={`rounded-xl border px-3 py-2 text-sm shadow-lg ${
-              notice.type === "success"
-                ? "border-emerald-400/35 bg-emerald-500/20 text-emerald-100"
-                : notice.type === "error"
-                  ? "border-red-400/35 bg-red-500/20 text-red-100"
-                  : "border-sky-400/35 bg-sky-500/20 text-sky-100"
-            }`}
+            className={`rounded-xl border px-3 py-2 text-sm shadow-lg ${notice.type === "success"
+              ? "border-emerald-400/35 bg-emerald-500/20 text-emerald-100"
+              : notice.type === "error"
+                ? "border-red-400/35 bg-red-500/20 text-red-100"
+                : "border-sky-400/35 bg-sky-500/20 text-sky-100"
+              }`}
           >
             {notice.text}
           </div>

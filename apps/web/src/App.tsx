@@ -21,27 +21,27 @@ export default function App() {
       <header className="relative border-b border-white/10 bg-slate-950/55 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
           <div>
-            <p className="text-base font-semibold tracking-wide text-emerald-200">稳流支付站</p>
-            <p className="text-xs text-slate-400">稳定结算演示平台 · Sui + StableLayer</p>
+            <p className="text-base font-semibold tracking-wide text-emerald-200">Stable Flow Pay Station</p>
+            <p className="text-xs text-slate-400">Stable Settlement Demo Platform · Sui + StableLayer</p>
           </div>
           <nav className="flex flex-wrap items-center gap-2 text-sm md:gap-3">
             <Link className="nav-pill" to="/quickstart">
-              引导体验
+              Quickstart
             </Link>
             <Link className="nav-pill" to="/merchant">
-              商户台
+              Merchant
             </Link>
             <Link className="nav-pill" to="/merchant/claim">
-              领取收益
+              Claim Revenue
             </Link>
             <Link className="nav-pill" to="/merchant/metrics">
-              指标看板
+              Metrics
             </Link>
             <Link className="nav-pill" to="/redeem">
-              赎回中心
+              Redeem
             </Link>
             <Link className="nav-pill" to="/automation">
-              本地自治
+              Automation
             </Link>
             <Link className="nav-pill" to="/agent">
               Local Agent
@@ -53,7 +53,7 @@ export default function App() {
       <section className="relative">
         <Suspense
           fallback={
-            <div className="mx-auto max-w-6xl px-6 py-10 text-sm text-slate-300">页面加载中...</div>
+            <div className="mx-auto max-w-6xl px-6 py-10 text-sm text-slate-300">Loading...</div>
           }
         >
           <Routes>

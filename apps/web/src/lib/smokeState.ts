@@ -288,7 +288,7 @@ export function smokeCreateInvoice(input: {
   const product = state.products.find((item) => item.objectId === input.productId);
 
   if (!product) {
-    return makeTxFeedback("merchant.create_invoice", "failure", "未找到商品。");
+    return makeTxFeedback("merchant.create_invoice", "failure", "Product not found.");
   }
 
   const nextInvoice: SmokeInvoice = {
@@ -316,15 +316,15 @@ export function smokePayInvoice(input: {
   const idx = state.invoices.findIndex((item) => item.objectId === input.invoiceId);
 
   if (idx < 0) {
-    return makeTxFeedback("pay.invoice", "failure", "账单不存在。");
+    return makeTxFeedback("pay.invoice", "failure", "Invoice not found.");
   }
 
   const invoice = normalizeInvoice(state.invoices[idx]);
   if (invoice.status === 1) {
-    return makeTxFeedback("pay.invoice", "failure", "账单已支付。");
+    return makeTxFeedback("pay.invoice", "failure", "Invoice already paid.");
   }
   if (invoice.amountU64 !== input.amountU64) {
-    return makeTxFeedback("pay.invoice", "failure", "支付金额与账单不一致。");
+    return makeTxFeedback("pay.invoice", "failure", "Payment amount mismatch.");
   }
 
   const nextInvoice: SmokeInvoice = {
@@ -364,7 +364,7 @@ export function smokeBurn(input: {
 
   if (input.mode === "all") {
     if (current <= 0n) {
-      return makeTxFeedback("redeem.burn_all", "failure", "余额为 0，无法全部赎回。");
+      return makeTxFeedback("redeem.burn_all", "failure", "Balance is 0, cannot redeem all.");
     }
 
     setBalance(input.owner, input.coinType, 0n);
@@ -373,10 +373,10 @@ export function smokeBurn(input: {
 
   const amount = input.amountU64 ?? 0n;
   if (amount <= 0n) {
-    return makeTxFeedback("redeem.burn_amount", "failure", "赎回数量必须大于 0。");
+    return makeTxFeedback("redeem.burn_amount", "failure", "Redemption amount must be greater than 0.");
   }
   if (current < amount) {
-    return makeTxFeedback("redeem.burn_amount", "failure", "余额不足。");
+    return makeTxFeedback("redeem.burn_amount", "failure", "Insufficient balance.");
   }
 
   setBalance(input.owner, input.coinType, current - amount);
@@ -420,7 +420,7 @@ export function smokePreviewUsdc(input: {
   }
 
   if (total < input.amount) {
-    throw new Error("USDC 余额不足，无法完成一键支付。");
+    throw new Error("Insufficient USDC balance, cannot complete one-click payment.");
   }
 
   const ownerHex = input.owner.replace(/^0x/, "").padEnd(48, "0").slice(0, 48);

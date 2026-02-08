@@ -12,7 +12,7 @@ import type {
 } from "./types";
 
 export class RuleEngine {
-  constructor(private readonly rules: Rule[] = []) {}
+  constructor(private readonly rules: Rule[] = []) { }
 
   register(rule: Rule): void {
     this.rules.push(rule);
@@ -199,9 +199,9 @@ function halfOrOne(balance: string | undefined): string {
 }
 
 function invoiceStatusLabel(status: number): string {
-  if (status === 1) return "已支付";
-  if (status === 0) return "待支付";
-  return `未知(${status})`;
+  if (status === 1) return "Paid";
+  if (status === 0) return "Unpaid";
+  return `Unknown(${status})`;
 }
 
 function dedupeActions(actions: SuggestedAction[]): SuggestedAction[] {
@@ -220,7 +220,7 @@ function dedupeActions(actions: SuggestedAction[]): SuggestedAction[] {
 
 function summarizeBalances(balances: Record<string, string>, stableCoinType: string): string[] {
   const entries = Object.entries(balances);
-  if (entries.length === 0) return ["未读取到余额。请先连接钱包并授权。"];
+  if (entries.length === 0) return ["No balances found. Please connect wallet."];
 
   const prioritized = [...entries].sort((a, b) => {
     if (a[0] === stableCoinType) return -1;
@@ -239,19 +239,19 @@ interface CoachStep {
 }
 
 const COACH_STEPS: CoachStep[] = [
-  { id: "merchant_flow", title: "创建商品与账单", path: "/merchant", hint: "先创建 Product 和 Invoice。" },
+  { id: "merchant_flow", title: "Create Product & Invoice", path: "/merchant", hint: "Create Product and Invoice first." },
   {
     id: "mint_pay_flow",
-    title: "执行 USDC 一键支付",
+    title: "Execute USDC Mint+Pay",
     path: "/pay",
-    hint: "在支付页执行 Mint+Pay 组合交易。"
+    hint: "Execute Mint+Pay combo transaction on payment page."
   },
-  { id: "redeem_flow", title: "执行赎回", path: "/redeem", hint: "选择 Burn amount 或 Burn all。" },
-  { id: "claim_flow", title: "执行收益领取", path: "/merchant/claim", hint: "提交 Claim 交易并查看状态。" }
+  { id: "redeem_flow", title: "Execute Redeem", path: "/redeem", hint: "Choose Burn amount or Burn all." },
+  { id: "claim_flow", title: "Execute Claim", path: "/merchant/claim", hint: "Submit Claim transaction and check status." }
 ];
 
 export class CheckoutAgentEngine {
-  constructor(private readonly llmEnhancer?: AgentLlmEnhancer) {}
+  constructor(private readonly llmEnhancer?: AgentLlmEnhancer) { }
 
   async run(input: AgentInput, tools?: Partial<AgentToolbox>): Promise<AgentOutput> {
     if (this.llmEnhancer?.enabled) {
@@ -279,43 +279,43 @@ export class CheckoutAgentEngine {
   private runGuideIntent(input: AgentInput): AgentOutput {
     const text = normalizeText(input.userInput);
     const actions: SuggestedAction[] = [
-      { label: "一键连续执行剧本", actionType: "RUN_DEMO_PLAYBOOK", payload: {} },
-      { label: "开启演示模式", actionType: "ENABLE_SMOKE_AND_GOTO_QUICKSTART", payload: {} },
-      { label: "跳到下一演示步骤", actionType: "GOTO_NEXT_DEMO_STEP", payload: {} },
-      { label: "打开引导页", actionType: "NAVIGATE", payload: { path: "/quickstart" } },
-      { label: "前往商户台", actionType: "NAVIGATE", payload: { path: "/merchant" } },
-      { label: "前往赎回页", actionType: "NAVIGATE", payload: { path: "/redeem" } },
-      { label: "前往领取页", actionType: "NAVIGATE", payload: { path: "/merchant/claim" } }
+      { label: "Run Full Playbook", actionType: "RUN_DEMO_PLAYBOOK", payload: {} },
+      { label: "Start Demo Mode", actionType: "ENABLE_SMOKE_AND_GOTO_QUICKSTART", payload: {} },
+      { label: "Next Demo Step", actionType: "GOTO_NEXT_DEMO_STEP", payload: {} },
+      { label: "Open Quickstart", actionType: "NAVIGATE", payload: { path: "/quickstart" } },
+      { label: "Go to Merchant", actionType: "NAVIGATE", payload: { path: "/merchant" } },
+      { label: "Go to Redeem", actionType: "NAVIGATE", payload: { path: "/redeem" } },
+      { label: "Go to Claim", actionType: "NAVIGATE", payload: { path: "/merchant/claim" } }
     ];
 
     const steps: AgentStep[] = [
       {
-        title: "项目核心功能",
+        title: "Core Features",
         status: "completed",
         details:
-          "1) 商户创建商品与账单；2) 支付页支持普通支付与 USDC 一键 Mint+Pay；3) 赎回支持 Burn amount/all；4) 商户可 Claim；5) 指标页可查看供给与业务指标。"
+          "1) Merchant creates Product & Invoice; 2) Payment page supports normal pay & USDC Mint+Pay; 3) Redeem supports Burn amount/all; 4) Merchant can Claim; 5) Metrics page shows supply & business stats."
       },
       {
-        title: "推荐演示顺序",
+        title: "Recommended Demo Flow",
         status: "completed",
-        details: "Quickstart -> Merchant 创建账单 -> Pay 执行 Mint+Pay -> Redeem -> Claim -> Metrics。"
+        details: "Quickstart -> Merchant Create Invoice -> Pay Mint+Pay -> Redeem -> Claim -> Metrics."
       },
       {
-        title: "验证点",
+        title: "Verification Points",
         status: "completed",
-        details: "每笔交易都核对 digest、status、Explorer 链接，并在支付页查看链上证明与事件流。"
+        details: "Check digest, status, Explorer link for every tx, and verify on-chain proof & events on payment page."
       }
     ];
 
     if (isConfigQuery(text)) {
       steps.unshift({
-        title: "配置指引",
+        title: "Config Guide",
         status: "completed",
         details:
-          "前端配置在 apps/web/.env；Agent 密钥配置在 packages/agent/.env.local（不要放入 VITE_* 变量）。"
+          "Frontend config in apps/web/.env; Agent key in packages/agent/.env.local (Do not put in VITE_* vars)."
       });
       actions.unshift({
-        label: "查看当前上下文",
+        label: "Show Context",
         actionType: "SHOW_CONTEXT",
         payload: {}
       });
@@ -323,13 +323,13 @@ export class CheckoutAgentEngine {
 
     if (isDeployQuery(text)) {
       steps.push({
-        title: "部署建议",
+        title: "Deploy Advice",
         status: "completed",
         details:
-          "推荐 GitHub Pages：推送 main 后由 deploy-pages 工作流自动发布；路演前先验证线上链接可访问。"
+          "Recommend GitHub Pages: push to main triggers deploy-pages workflow; verify online link access before demo."
       });
       actions.push({
-        label: "导出演示记录",
+        label: "Export Demo Log",
         actionType: "EXPORT_DEMO_LOG",
         payload: {}
       });
@@ -337,7 +337,7 @@ export class CheckoutAgentEngine {
 
     if (input.context.lastDigest) {
       actions.unshift({
-        label: "查询最近交易状态",
+        label: "Check Last Tx Status",
         actionType: "CHECK_TX_STATUS",
         payload: { digest: input.context.lastDigest }
       });
@@ -348,13 +348,13 @@ export class CheckoutAgentEngine {
       steps,
       suggestedActions: input.context.invoiceId
         ? [
-            {
-              label: "对当前账单执行 Mint+Pay",
-              actionType: "PAY_MINT_AND_PAY",
-              payload: { invoiceId: input.context.invoiceId }
-            },
-            ...dedupeActions(actions)
-          ]
+          {
+            label: "Mint+Pay Current Invoice",
+            actionType: "PAY_MINT_AND_PAY",
+            payload: { invoiceId: input.context.invoiceId }
+          },
+          ...dedupeActions(actions)
+        ]
         : dedupeActions(actions)
     };
   }
@@ -364,28 +364,28 @@ export class CheckoutAgentEngine {
       intent: "HELP",
       steps: [
         {
-          title: "剧本目标",
+          title: "Playbook Goal",
           status: "completed",
-          details: "自动串行执行：创建商品 -> 创建账单 -> Mint+Pay -> Burn -> Claim。"
+          details: "Auto serial execution: Create Product -> Create Invoice -> Mint+Pay -> Burn -> Claim."
         },
         {
-          title: "执行方式",
+          title: "Execution Mode",
           status: "completed",
           details:
-            "点击“一键连续执行剧本”后，系统会按顺序触发交易。真实模式下每一步都需要你在钱包确认签名。"
+            "After clicking 'Run Full Playbook', system triggers transactions sequentially. In real mode, each step requires wallet signature."
         },
         {
-          title: "失败处理",
+          title: "Failure Handling",
           status: "completed",
           details:
-            "任一步骤失败会中止剧本，并显示失败步骤与错误信息。Burn 在余额为 0 时会自动跳过。"
+            "Any failure aborts the playbook and shows error. Burn is skipped if balance is 0."
         }
       ],
       suggestedActions: dedupeActions([
-        { label: "一键连续执行剧本", actionType: "RUN_DEMO_PLAYBOOK", payload: {} },
-        { label: "开启演示模式", actionType: "ENABLE_SMOKE_AND_GOTO_QUICKSTART", payload: {} },
-        { label: "打开引导页", actionType: "NAVIGATE", payload: { path: "/quickstart" } },
-        { label: "导出演示记录", actionType: "EXPORT_DEMO_LOG", payload: {} }
+        { label: "Run Full Playbook", actionType: "RUN_DEMO_PLAYBOOK", payload: {} },
+        { label: "Start Demo Mode", actionType: "ENABLE_SMOKE_AND_GOTO_QUICKSTART", payload: {} },
+        { label: "Open Quickstart", actionType: "NAVIGATE", payload: { path: "/quickstart" } },
+        { label: "Export Demo Log", actionType: "EXPORT_DEMO_LOG", payload: {} }
       ])
     };
   }
@@ -396,33 +396,33 @@ export class CheckoutAgentEngine {
 
     const steps: AgentStep[] = [
       {
-        title: "演示模式建议",
+        title: "Demo Mode Advice",
         status: "completed",
-        details: "先开启 Smoke 模式，再按 Quickstart 四步执行，最后展示 Metrics 与交易证据。"
+        details: "Enable Smoke Mode first, then follow Quickstart 4 steps, finally show Metrics & Tx Proofs."
       },
       {
-        title: "当前演示进度",
+        title: "Current Progress",
         status: "completed",
-        details: `已完成 ${completed.size}/${COACH_STEPS.length} 步。`
+        details: `Completed ${completed.size}/${COACH_STEPS.length} steps.`
       },
       {
-        title: "下一步",
+        title: "Next Step",
         status: next ? "in_progress" : "completed",
-        details: next ? `${next.title}（${next.path}）` : "主线流程已完成，建议导出演示记录。"
+        details: next ? `${next.title} (${next.path})` : "Main flow completed, recommend exporting log."
       }
     ];
 
     const actions: SuggestedAction[] = [
-      { label: "一键连续执行剧本", actionType: "RUN_DEMO_PLAYBOOK", payload: {} },
-      { label: "开启演示模式并跳引导页", actionType: "ENABLE_SMOKE_AND_GOTO_QUICKSTART", payload: {} },
-      { label: "跳到下一演示步骤", actionType: "GOTO_NEXT_DEMO_STEP", payload: {} },
-      { label: "打开引导页", actionType: "NAVIGATE", payload: { path: "/quickstart" } },
-      { label: "导出演示记录", actionType: "EXPORT_DEMO_LOG", payload: {} }
+      { label: "Run Full Playbook", actionType: "RUN_DEMO_PLAYBOOK", payload: {} },
+      { label: "Start Demo & Go Quickstart", actionType: "ENABLE_SMOKE_AND_GOTO_QUICKSTART", payload: {} },
+      { label: "Next Demo Step", actionType: "GOTO_NEXT_DEMO_STEP", payload: {} },
+      { label: "Open Quickstart", actionType: "NAVIGATE", payload: { path: "/quickstart" } },
+      { label: "Export Demo Log", actionType: "EXPORT_DEMO_LOG", payload: {} }
     ];
 
     if (input.context.invoiceId) {
       actions.unshift({
-        label: "直接支付当前账单（Mint+Pay）",
+        label: "Pay Current Invoice (Mint+Pay)",
         actionType: "PAY_MINT_AND_PAY",
         payload: { invoiceId: input.context.invoiceId }
       });
@@ -441,29 +441,29 @@ export class CheckoutAgentEngine {
 
     const steps: AgentStep[] = [
       {
-        title: "读取钱包余额",
+        title: "Read Wallet Balance",
         status: Object.keys(balances).length > 0 ? "completed" : "failed",
         details: balanceLines.join(" | ")
       },
       {
-        title: "可执行动作建议",
+        title: "Action Suggestion",
         status: "completed",
         details:
           stableBalance !== "0"
-            ? `检测到可赎回余额 ${stableBalance}，可直接执行 Burn。`
-            : "未检测到可赎回余额，可先执行 Mint+Pay 获得稳定币。"
+            ? `Found redeemable balance ${stableBalance}, you can Burn.`
+            : "No redeemable balance, you can Mint+Pay to get stablecoins."
       }
     ];
 
     const actions: SuggestedAction[] = [
-      { label: "查看当前上下文", actionType: "SHOW_CONTEXT", payload: {} },
-      { label: "前往赎回页", actionType: "NAVIGATE", payload: { path: "/redeem" } },
-      { label: "前往指标页", actionType: "NAVIGATE", payload: { path: "/merchant/metrics" } }
+      { label: "Show Context", actionType: "SHOW_CONTEXT", payload: {} },
+      { label: "Go to Redeem", actionType: "NAVIGATE", payload: { path: "/redeem" } },
+      { label: "Go to Metrics", actionType: "NAVIGATE", payload: { path: "/merchant/metrics" } }
     ];
 
     if (stableBalance !== "0") {
       actions.unshift({
-        label: "按半仓赎回",
+        label: "Redeem Half",
         actionType: "REDEEM_AMOUNT",
         payload: { amount: halfOrOne(stableBalance) }
       });
@@ -471,7 +471,7 @@ export class CheckoutAgentEngine {
 
     if (input.context.invoiceId) {
       actions.unshift({
-        label: "支付当前账单（Mint+Pay）",
+        label: "Pay Current Invoice (Mint+Pay)",
         actionType: "PAY_MINT_AND_PAY",
         payload: { invoiceId: input.context.invoiceId }
       });
@@ -489,28 +489,28 @@ export class CheckoutAgentEngine {
         intent: "HELP",
         steps: [
           {
-            title: "演示闭环已完成",
+            title: "Demo Loop Completed",
             status: "completed",
-            details: "四步演示已完成。建议打开指标页展示 GMV/转化率，并回放最近交易历史。"
+            details: "4-step demo finished. Recommend showing Metrics page for GMV/Conversion, and replay recent tx history."
           }
         ],
         suggestedActions: [
-          { label: "打开指标页", actionType: "NAVIGATE", payload: { path: "/merchant/metrics" } },
-          { label: "返回引导页", actionType: "NAVIGATE", payload: { path: "/quickstart" } }
+          { label: "Open Metrics", actionType: "NAVIGATE", payload: { path: "/merchant/metrics" } },
+          { label: "Back to Quickstart", actionType: "NAVIGATE", payload: { path: "/quickstart" } }
         ]
       };
     }
 
     const actions: SuggestedAction[] = [];
-    if (next.id === "mint_pay_flow" && input.context.invoiceId) {
+    if (next.id === "merchant_flow" && input.context.invoiceId) {
       actions.push({
-        label: "直接执行当前账单 Mint+Pay",
+        label: "Execute Mint+Pay on Current Invoice",
         actionType: "PAY_MINT_AND_PAY",
         payload: { invoiceId: input.context.invoiceId }
       });
     }
     actions.push({
-      label: `前往：${next.title}`,
+      label: `Go to: ${next.title}`,
       actionType: "NAVIGATE",
       payload: { path: next.path === "/pay" && input.context.invoiceId ? `/pay/${input.context.invoiceId}` : next.path }
     });
@@ -519,12 +519,12 @@ export class CheckoutAgentEngine {
       intent: "HELP",
       steps: [
         {
-          title: "演示教练",
+          title: "Demo Coach",
           status: "completed",
-          details: `下一步建议：${next.title}`
+          details: `Next Suggested Step: ${next.title}`
         },
         {
-          title: "执行提示",
+          title: "Execution Hint",
           status: "pending",
           details: next.hint
         }
@@ -542,12 +542,12 @@ export class CheckoutAgentEngine {
 
     if (!input.context.invoiceId) {
       steps.push({
-        title: "缺少账单上下文",
+        title: "Missing Invoice Context",
         status: "failed",
-        details: "当前不在 /pay/:invoiceId 页面，无法直接构建支付交易。"
+        details: "Not on /pay/:invoiceId page, cannot build pay tx directly."
       });
       actions.push({
-        label: "前往商户台创建账单",
+        label: "Go to Merchant to Create Invoice",
         actionType: "NAVIGATE",
         payload: { path: "/merchant" }
       });
@@ -555,13 +555,13 @@ export class CheckoutAgentEngine {
     }
 
     steps.push({
-      title: "读取账单信息",
+      title: "Read Invoice Info",
       status: "in_progress",
-      details: `账单 ID: ${input.context.invoiceId}`
+      details: `Invoice ID: ${input.context.invoiceId}`
     });
 
     let invoiceStatus = 0;
-    let invoiceAmount = "未知";
+    let invoiceAmount = "Unknown";
 
     if (tools?.getInvoice) {
       try {
@@ -569,40 +569,40 @@ export class CheckoutAgentEngine {
         invoiceStatus = invoice.status;
         invoiceAmount = invoice.amountU64;
         steps[0] = {
-          title: "读取账单信息",
+          title: "Read Invoice Info",
           status: "completed",
-          details: `金额=${invoice.amountU64}，状态=${invoiceStatusLabel(invoice.status)}，买家=${invoice.buyer || "-"}`
+          details: `Amount=${invoice.amountU64}, Status=${invoiceStatusLabel(invoice.status)}, Buyer=${invoice.buyer || "-"}`
         };
       } catch (error) {
-        const message = error instanceof Error ? error.message : "账单查询失败";
+        const message = error instanceof Error ? error.message : "Fetch Invoice Failed";
         steps[0] = {
-          title: "读取账单信息",
+          title: "Read Invoice Info",
           status: "failed",
           details: message
         };
       }
     } else {
       steps[0] = {
-        title: "读取账单信息",
+        title: "Read Invoice Info",
         status: "completed",
-        details: "已拿到 invoiceId，上链详情将由页面执行动作时查询。"
+        details: "InvoiceId obtained, details will be fetched by page action."
       };
     }
 
     if (invoiceStatus === 1) {
       steps.push({
-        title: "支付判断",
+        title: "Payment Check",
         status: "completed",
-        details: "账单已支付，建议刷新账单状态或查询最近交易。"
+        details: "Invoice paid. Recommend refreshing status or checking recent tx."
       });
       actions.push({
-        label: "刷新账单状态",
+        label: "Refresh Invoice Status",
         actionType: "REFRESH_INVOICE",
         payload: { invoiceId: input.context.invoiceId }
       });
       if (input.context.lastDigest) {
         actions.push({
-          label: "查询最近交易状态",
+          label: "Check Last Tx Status",
           actionType: "CHECK_TX_STATUS",
           payload: { digest: input.context.lastDigest }
         });
@@ -611,23 +611,23 @@ export class CheckoutAgentEngine {
     }
 
     steps.push({
-      title: "准备组合交易 Mint+Pay",
+      title: "Prepare Mint+Pay",
       status: "pending",
-      details: `预计支付金额: ${invoiceAmount}（USDC -> BrandUSD -> pay_invoice）`
+      details: `Est. Amount: ${invoiceAmount} (USDC -> BrandUSD -> pay_invoice)`
     });
     steps.push({
-      title: "提交并验证",
+      title: "Submit & Verify",
       status: "pending",
-      details: "交易完成后核对 digest、status、Explorer。"
+      details: "Check digest, status, Explorer after completion."
     });
 
     actions.push({
-      label: "执行一键支付（Mint+Pay）",
+      label: "Execute Mint+Pay",
       actionType: "PAY_MINT_AND_PAY",
       payload: { invoiceId: input.context.invoiceId }
     });
     actions.push({
-      label: "打开支付详情页",
+      label: "Open Pay Page",
       actionType: "NAVIGATE",
       payload: { path: `/pay/${input.context.invoiceId}` }
     });
@@ -647,39 +647,39 @@ export class CheckoutAgentEngine {
 
     const steps: AgentStep[] = [
       {
-        title: "检查 BrandUSD 余额",
+        title: "Check BrandUSD Balance",
         status: "completed",
-        details: `余额（${input.context.stableCoinType || "未配置"}）: ${stableBalance}`
+        details: `Balance (${input.context.stableCoinType || "Not Configured"}): ${stableBalance}`
       },
       {
-        title: "选择赎回模式",
+        title: "Choose Redeem Mode",
         status: "pending",
         details: allFlag
-          ? "已识别为“全部赎回”。"
+          ? "Identified 'Redeem All'."
           : explicitAmount
-            ? `已识别为“按数量赎回”，数量=${explicitAmount}。`
-            : "未指定数量，将提供推荐赎回量。"
+            ? `Identified 'Redeem Amount', amount=${explicitAmount}.`
+            : "No amount specified, recommending amount."
       },
       {
-        title: "签名并提交",
+        title: "Sign & Submit",
         status: "pending",
-        details: "MVP 默认按 T+1 结算。"
+        details: "MVP defaults to T+1 settlement."
       }
     ];
 
     const actions: SuggestedAction[] = [];
     if (allFlag) {
-      actions.push({ label: "全部赎回", actionType: "REDEEM_ALL", payload: { all: true } });
+      actions.push({ label: "Redeem All", actionType: "REDEEM_ALL", payload: { all: true } });
     } else {
       actions.push({
-        label: "按数量赎回",
+        label: "Redeem Amount",
         actionType: "REDEEM_AMOUNT",
         payload: { amount: explicitAmount || halfOrOne(stableBalance) }
       });
-      actions.push({ label: "全部赎回", actionType: "REDEEM_ALL", payload: { all: true } });
+      actions.push({ label: "Redeem All", actionType: "REDEEM_ALL", payload: { all: true } });
     }
     actions.push({
-      label: "打开赎回页",
+      label: "Open Redeem Page",
       actionType: "NAVIGATE",
       payload: { path: "/redeem" }
     });
@@ -692,24 +692,24 @@ export class CheckoutAgentEngine {
       intent: "CLAIM",
       steps: [
         {
-          title: "权限检查",
+          title: "Permission Check",
           status: "pending",
-          details: "当前钱包需要具备收益领取权限。"
+          details: "Current wallet must have claim permission."
         },
         {
-          title: "构建 Claim 交易",
+          title: "Build Claim Tx",
           status: "pending",
-          details: `稳定币类型: ${input.context.stableCoinType || "未配置"}`
+          details: `Stablecoin: ${input.context.stableCoinType || "Not Configured"}`
         },
         {
-          title: "提交并复核",
+          title: "Submit & Verify",
           status: "pending",
-          details: "完成后核对 digest、status、Explorer。"
+          details: "Check digest, status, Explorer after completion."
         }
       ],
       suggestedActions: [
-        { label: "执行收益领取", actionType: "CLAIM_REVENUE", payload: {} },
-        { label: "打开领取页", actionType: "NAVIGATE", payload: { path: "/merchant/claim" } }
+        { label: "Execute Claim", actionType: "CLAIM_REVENUE", payload: {} },
+        { label: "Open Claim Page", actionType: "NAVIGATE", payload: { path: "/merchant/claim" } }
       ]
     };
   }
@@ -725,18 +725,18 @@ export class CheckoutAgentEngine {
         intent: "STATUS",
         steps: [
           {
-            title: "缺少交易 Digest",
+            title: "Missing Tx Digest",
             status: "failed",
-            details: "请提供 digest，或先执行一笔交易再查询。"
+            details: "Please provide digest, or execute a tx first."
           }
         ],
-        suggestedActions: [{ label: "查看帮助", actionType: "SHOW_HELP", payload: {} }]
+        suggestedActions: [{ label: "Show Help", actionType: "SHOW_HELP", payload: {} }]
       };
     }
 
     const steps: AgentStep[] = [
       {
-        title: "查询交易状态",
+        title: "Check Tx Status",
         status: "in_progress",
         details: `digest: ${digest}`
       }
@@ -746,19 +746,19 @@ export class CheckoutAgentEngine {
       try {
         const snapshot = await tools.getTxStatus(digest);
         steps[0] = {
-          title: "查询交易状态",
+          title: "Check Tx Status",
           status: "completed",
-          details: `状态=${snapshot.status}，Explorer=${snapshot.explorerUrl || "-"}`
+          details: `Status=${snapshot.status}, Explorer=${snapshot.explorerUrl || "-"}`
         };
       } catch (error) {
-        const message = error instanceof Error ? error.message : "交易状态查询失败";
-        steps[0] = { title: "查询交易状态", status: "failed", details: message };
+        const message = error instanceof Error ? error.message : "Check Tx Failed";
+        steps[0] = { title: "Check Tx Status", status: "failed", details: message };
       }
     } else {
       steps[0] = {
-        title: "查询交易状态",
+        title: "Check Tx Status",
         status: "pending",
-        details: "点击动作按钮执行链上查询。"
+        details: "Click action button to check on-chain."
       };
     }
 
@@ -767,7 +767,7 @@ export class CheckoutAgentEngine {
       steps,
       suggestedActions: [
         {
-          label: "刷新交易状态",
+          label: "Refresh Tx Status",
           actionType: "CHECK_TX_STATUS",
           payload: { digest }
         }
@@ -777,20 +777,20 @@ export class CheckoutAgentEngine {
 
   private runHelpIntent(input: AgentInput): AgentOutput {
     const actions: SuggestedAction[] = [
-      { label: "一键连续执行剧本", actionType: "RUN_DEMO_PLAYBOOK", payload: {} },
-      { label: "开启演示模式", actionType: "ENABLE_SMOKE_AND_GOTO_QUICKSTART", payload: {} },
-      { label: "跳到下一演示步骤", actionType: "GOTO_NEXT_DEMO_STEP", payload: {} },
-      { label: "打开引导页", actionType: "NAVIGATE", payload: { path: "/quickstart" } },
-      { label: "去商户台", actionType: "NAVIGATE", payload: { path: "/merchant" } },
-      { label: "去赎回页", actionType: "NAVIGATE", payload: { path: "/redeem" } },
-      { label: "去领取页", actionType: "NAVIGATE", payload: { path: "/merchant/claim" } },
-      { label: "去指标页", actionType: "NAVIGATE", payload: { path: "/merchant/metrics" } },
-      { label: "查看当前上下文", actionType: "SHOW_CONTEXT", payload: {} }
+      { label: "Run Full Playbook", actionType: "RUN_DEMO_PLAYBOOK", payload: {} },
+      { label: "Start Demo Mode", actionType: "ENABLE_SMOKE_AND_GOTO_QUICKSTART", payload: {} },
+      { label: "Next Demo Step", actionType: "GOTO_NEXT_DEMO_STEP", payload: {} },
+      { label: "Open Quickstart", actionType: "NAVIGATE", payload: { path: "/quickstart" } },
+      { label: "Go to Merchant", actionType: "NAVIGATE", payload: { path: "/merchant" } },
+      { label: "Go to Redeem", actionType: "NAVIGATE", payload: { path: "/redeem" } },
+      { label: "Go to Claim", actionType: "NAVIGATE", payload: { path: "/merchant/claim" } },
+      { label: "Go to Metrics", actionType: "NAVIGATE", payload: { path: "/merchant/metrics" } },
+      { label: "Show Context", actionType: "SHOW_CONTEXT", payload: {} }
     ];
 
     if (input.context.invoiceId) {
       actions.unshift({
-        label: "支付当前账单（Mint+Pay）",
+        label: "Pay Current Invoice (Mint+Pay)",
         actionType: "PAY_MINT_AND_PAY",
         payload: { invoiceId: input.context.invoiceId }
       });

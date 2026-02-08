@@ -13,7 +13,7 @@ function formatTime(timestampMs: number): string {
   return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
 }
 
-export function RecentTxHistoryCard({ title = "最近交易记录", refreshKey, limit = 8 }: Props) {
+export function RecentTxHistoryCard({ title = "Recent Transactions", refreshKey, limit = 8 }: Props) {
   const [localRefresh, setLocalRefresh] = useState(0);
   void refreshKey;
   void localRefresh;
@@ -31,18 +31,18 @@ export function RecentTxHistoryCard({ title = "最近交易记录", refreshKey, 
               setLocalRefresh((prev) => prev + 1);
             }}
           >
-            清空
+            Clear
           </Button>
         </div>
-        {entries.length === 0 && <p className="text-slate-400">暂无本地交易历史。</p>}
+        {entries.length === 0 && <p className="text-slate-400">No local transaction history.</p>}
         {entries.map((entry) => (
           <div key={entry.id} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
             <p className="text-xs text-slate-400">{formatTime(entry.timestampMs)}</p>
-            <p className="break-all text-xs text-slate-400">场景：{entry.scene}</p>
+            <p className="break-all text-xs text-slate-400">Scene: {entry.scene}</p>
             <p className="break-all">Digest：{entry.digest || "-"}</p>
-            <p>状态：{entry.status}</p>
-            {entry.receiptObjectId && <p className="break-all">回执：{entry.receiptObjectId}</p>}
-            {entry.errorMessage && <p className="text-red-300">错误：{entry.errorMessage}</p>}
+            <p>Status: {entry.status}</p>
+            {entry.receiptObjectId && <p className="break-all">Receipt: {entry.receiptObjectId}</p>}
+            {entry.errorMessage && <p className="text-red-300">Error: {entry.errorMessage}</p>}
             {entry.explorerUrl && (
               <a
                 href={entry.explorerUrl}
@@ -50,7 +50,7 @@ export function RecentTxHistoryCard({ title = "最近交易记录", refreshKey, 
                 target="_blank"
                 rel="noreferrer"
               >
-                打开区块浏览器
+                Open in Explorer
               </a>
             )}
           </div>

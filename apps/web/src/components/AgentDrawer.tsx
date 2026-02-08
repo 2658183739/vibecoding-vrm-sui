@@ -64,22 +64,22 @@ const AGENT_HISTORY_MARKDOWN_STORAGE_KEY = "stableflow.agent.history.markdown.v1
 const AGENT_TIMELINE_MAX_ITEMS = 40;
 
 const QUICK_PROMPTS = [
-  "这个项目有什么功能？",
-  "怎么快速演示这个项目？",
-  "一键连续执行剧本",
-  "开始完整演示",
-  "继续下一步",
-  "我现在有哪些余额？",
-  "怎么配置百炼 key？",
-  "帮我支付当前账单",
-  "帮我全部赎回",
-  "帮我领取收益"
+  "What features does this project have?",
+  "How to quickly demo this project?",
+  "One-click execute playbook",
+  "Start full demo",
+  "Continue to next step",
+  "What is my current balance?",
+  "How to config Bailian Key?",
+  "Pay current invoice for me",
+  "Redeem all for me",
+  "Claim rewards for me"
 ] as const;
 
 function summarizeOutput(output: AgentOutput): string {
   const firstStep = output.steps[0]?.title || "-";
   const firstAction = output.suggestedActions[0]?.label || "-";
-  return `意图：${output.intent}\n第一步：${firstStep}\n推荐动作：${firstAction}`;
+  return `Intent: ${output.intent}\nFirst Step: ${firstStep}\nSuggested Action: ${firstAction}`;
 }
 
 function stepColor(status: AgentOutput["steps"][number]["status"]): string {
@@ -115,20 +115,20 @@ function formatTime(timestampMs: number): string {
 }
 
 function statusLabel(status: PlaybookStepStatus): string {
-  if (status === "in_progress") return "进行中";
-  if (status === "success") return "成功";
-  if (status === "skipped") return "跳过";
-  return "失败";
+  if (status === "in_progress") return "In Progress";
+  if (status === "success") return "Success";
+  if (status === "skipped") return "Skipped";
+  return "Failed";
 }
 
 function deriveGoalHints(text: string): string[] {
   const goals: string[] = [];
   const normalized = text.toLowerCase();
-  if (normalized.includes("演示") || normalized.includes("demo")) goals.push("demo");
-  if (normalized.includes("支付")) goals.push("pay");
-  if (normalized.includes("赎回")) goals.push("redeem");
-  if (normalized.includes("领取")) goals.push("claim");
-  if (normalized.includes("功能") || normalized.includes("怎么用")) goals.push("guide");
+  if (normalized.includes("demo") || normalized.includes("演示")) goals.push("demo");
+  if (normalized.includes("pay") || normalized.includes("支付")) goals.push("pay");
+  if (normalized.includes("redeem") || normalized.includes("赎回")) goals.push("redeem");
+  if (normalized.includes("claim") || normalized.includes("领取")) goals.push("claim");
+  if (normalized.includes("feature") || normalized.includes("guide") || normalized.includes("how to")) goals.push("guide");
   return goals;
 }
 
@@ -175,12 +175,12 @@ function buildHistoryMarkdownEntry(output: AgentOutput, timestampMs: number): st
   const lines: string[] = [];
   lines.push(`### ${formatTime(timestampMs)} · ${output.intent}`);
   lines.push("");
-  lines.push("步骤：");
+  lines.push("Steps:");
   output.steps.forEach((step) => {
     lines.push(`- [${step.status}] ${step.title}：${step.details}`);
   });
   lines.push("");
-  lines.push("建议动作：");
+  lines.push("Suggested Actions:");
   output.suggestedActions.forEach((action) => {
     lines.push(`- ${action.label} (${action.actionType})`);
   });
@@ -225,7 +225,7 @@ export function AgentDrawer() {
     {
       id: buildMessageId(),
       role: "assistant",
-      text: "助手已就绪。你可以问“项目有什么功能、怎么演示、下一步做什么”，也可以直接让我执行交易动作。"
+      text: "Assistant is ready. You can ask 'What features does this project have', 'How to demo', 'What to do next', or ask me to execute transaction actions directly."
     }
   ]);
   const [latestOutput, setLatestOutput] = useState<AgentOutput | null>(null);
@@ -338,20 +338,20 @@ export function AgentDrawer() {
   function toTimelineMarkdown(): string {
     const now = new Date();
     const lines: string[] = [];
-    lines.push("# Agent 演示记录");
+    lines.push("# Agent Demo Log");
     lines.push("");
-    lines.push(`- 导出时间: ${now.toLocaleString()}`);
-    lines.push(`- 当前路径: ${location.pathname}`);
-    lines.push(`- 当前钱包: ${account?.address || "-"}`);
-    lines.push(`- 当前模式: ${isSmokeMode() ? "Smoke 演示模式" : "链上真实模式"}`);
+    lines.push(`- Export Time: ${now.toLocaleString()}`);
+    lines.push(`- Current Path: ${location.pathname}`);
+    lines.push(`- Current Wallet: ${account?.address || "-"}`);
+    lines.push(`- Current Mode: ${isSmokeMode() ? "Smoke Demo Mode" : "Real Chain Mode"}`);
     lines.push("");
-    lines.push("## 演示进度");
-    lines.push(`- 完成率: ${quickstartProgress.percentage}%`);
+    lines.push("## Demo Progress");
+    lines.push(`- Completion Rate: ${quickstartProgress.percentage}%`);
     for (const step of quickstartProgress.steps) {
       lines.push(`- [${step.completed ? "x" : " "}] ${step.title} (${step.actionPath})`);
     }
     lines.push("");
-    lines.push("## 历史记录（Markdown）");
+    lines.push("## History (Markdown)");
     lines.push("");
     if (historyMarkdown.trim().length > 0) {
       lines.push(historyMarkdown.trim());
@@ -359,7 +359,7 @@ export function AgentDrawer() {
       return lines.join("\n");
     }
 
-    lines.push("- 暂无记录");
+    lines.push("- No records");
     lines.push("");
 
     return lines.join("\n");
@@ -377,12 +377,12 @@ export function AgentDrawer() {
       await navigator.clipboard.writeText(content);
       setMessages((prev) => [
         ...prev,
-        { id: buildMessageId(), role: "system", text: "已复制历史记录 Markdown。" }
+        { id: buildMessageId(), role: "system", text: "History Markdown copied." }
       ]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { id: buildMessageId(), role: "system", text: "复制失败，请改用导出功能。" }
+        { id: buildMessageId(), role: "system", text: "Copy failed, please use export function." }
       ]);
     }
   }
@@ -450,13 +450,13 @@ export function AgentDrawer() {
         {
           id: buildMessageId(),
           role: "assistant",
-          text: `${summarizeOutput(output)}\n（如需执行，请展开“推荐动作”面板）`
+          text: `${summarizeOutput(output)}\n(Expand "Suggested Actions" panel to execute)`
         }
       ]);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        { id: buildMessageId(), role: "assistant", text: `执行异常：${parseErrorMessage(error)}` }
+        { id: buildMessageId(), role: "assistant", text: `Execution Exception: ${parseErrorMessage(error)}` }
       ]);
     } finally {
       setLoading(false);
@@ -469,7 +469,7 @@ export function AgentDrawer() {
 
     try {
       if (!toolbox && actionNeedsWallet(action.actionType)) {
-        throw new Error("当前动作需要钱包签名，请先连接钱包。");
+        throw new Error("Current action requires wallet signature, please connect wallet first.");
       }
 
       if (action.actionType === "NAVIGATE") {
@@ -477,13 +477,13 @@ export function AgentDrawer() {
         navigate(path);
         setMessages((prev) => [
           ...prev,
-          { id: buildMessageId(), role: "system", text: `已跳转到 ${path}` }
+          { id: buildMessageId(), role: "system", text: `Navigated to ${path}` }
         ]);
         return;
       }
 
       if (action.actionType === "RUN_DEMO_PLAYBOOK") {
-        if (!account) throw new Error("请先连接钱包。");
+        if (!account) throw new Error("Please connect wallet first.");
 
         const playbookMessages: string[] = [];
         const playbookResult = await runAgentFullPlaybook({
@@ -496,7 +496,7 @@ export function AgentDrawer() {
               {
                 id: buildMessageId(),
                 role: "system",
-                text: `[剧本] ${statusLabel(step.status)}：${step.title}\n${step.details}`
+                text: `[Playbook] ${statusLabel(step.status)}: ${step.title}\n${step.details}`
               }
             ]);
           }
@@ -519,7 +519,7 @@ export function AgentDrawer() {
             {
               id: buildMessageId(),
               role: "assistant",
-              text: `剧本创建的账单：${playbookResult.invoiceId}\n你可以前往 /pay/${playbookResult.invoiceId} 复核状态。`
+              text: `Invoice created by playbook: ${playbookResult.invoiceId}\nYou can go to /pay/${playbookResult.invoiceId} to verify.`
             }
           ]);
         }
@@ -530,13 +530,13 @@ export function AgentDrawer() {
             id: buildMessageId(),
             role: "assistant",
             text: playbookResult.success
-              ? `剧本执行完成。\n${playbookMessages.join("\n")}`
-              : `剧本执行中止：${playbookResult.errorMessage || "未知错误"}\n${playbookMessages.join("\n")}`
+              ? `Playbook execution completed.\n${playbookMessages.join("\n")}`
+              : `Playbook execution aborted: ${playbookResult.errorMessage || "Unknown Error"}\n${playbookMessages.join("\n")}`
           }
         ]);
 
         if (!playbookResult.success) {
-          setActionError(playbookResult.errorMessage || "剧本执行失败。");
+          setActionError(playbookResult.errorMessage || "Playbook execution failed.");
         }
         return;
       }
@@ -550,7 +550,7 @@ export function AgentDrawer() {
         gotoNextDemoStep();
         setMessages((prev) => [
           ...prev,
-          { id: buildMessageId(), role: "system", text: "已跳转到下一演示步骤页面。" }
+          { id: buildMessageId(), role: "system", text: "Navigated to next demo step page." }
         ]);
         return;
       }
@@ -559,7 +559,7 @@ export function AgentDrawer() {
         onExportTimelineMarkdown();
         setMessages((prev) => [
           ...prev,
-          { id: buildMessageId(), role: "system", text: "已导出演示记录 Markdown 文件。" }
+          { id: buildMessageId(), role: "system", text: "History Markdown exported." }
         ]);
         return;
       }
@@ -572,12 +572,12 @@ export function AgentDrawer() {
             id: buildMessageId(),
             role: "system",
             text:
-              `当前上下文：\n` +
-              `路径=${location.pathname}\n` +
-              `钱包=${account?.address || "-"}\n` +
+              `Current Context:\n` +
+              `Path=${location.pathname}\n` +
+              `Wallet=${account?.address || "-"}\n` +
               `InvoiceId=${invoiceId}\n` +
               `StableCoinType=${appConfig.stableLayer.stableCoinType || "-"}\n` +
-              `最近Digest=${lastDigest || "-"}`
+              `Last Digest=${lastDigest || "-"}`
           }
         ]);
         return;
@@ -586,7 +586,7 @@ export function AgentDrawer() {
       if (action.actionType === "CHECK_TX_STATUS") {
         const digest =
           typeof action.payload?.digest === "string" ? action.payload.digest : lastDigest;
-        if (!digest) throw new Error("缺少可查询的 digest。");
+        if (!digest) throw new Error("Missing digest to query.");
 
         const status = await queryTxStatus(digest);
         setMessages((prev) => [
@@ -594,7 +594,7 @@ export function AgentDrawer() {
           {
             id: buildMessageId(),
             role: "system",
-            text: `交易 ${status.digest}：${status.status}${status.explorerUrl ? ` | ${status.explorerUrl}` : ""}`
+            text: `Tx ${status.digest}: ${status.status}${status.explorerUrl ? ` | ${status.explorerUrl}` : ""}`
           }
         ]);
         return;
@@ -605,7 +605,7 @@ export function AgentDrawer() {
           typeof action.payload?.invoiceId === "string"
             ? action.payload.invoiceId
             : parseInvoiceIdFromPath(location.pathname);
-        if (!invoiceId) throw new Error("缺少账单 ID。");
+        if (!invoiceId) throw new Error("Missing Invoice ID.");
 
         const invoice = await queryInvoice(invoiceId);
         setMessages((prev) => [
@@ -613,7 +613,7 @@ export function AgentDrawer() {
           {
             id: buildMessageId(),
             role: "system",
-            text: `账单 ${invoice.objectId}：金额=${invoice.amountU64}，状态=${invoice.status}，买家=${invoice.buyer || "-"}`
+            text: `Invoice ${invoice.objectId}: Amount=${invoice.amountU64}, Status=${invoice.status}, Buyer=${invoice.buyer || "-"}`
           }
         ]);
         return;
@@ -625,7 +625,7 @@ export function AgentDrawer() {
           {
             id: buildMessageId(),
             role: "assistant",
-            text: "你可以问：项目有什么功能、怎么演示、下一步做什么、支付当前账单、全部赎回。"
+            text: "You can ask: 'What features does this project have', 'How to demo', 'What to do next', 'Pay current invoice', 'Redeem all'."
           }
         ]);
         return;
@@ -633,7 +633,7 @@ export function AgentDrawer() {
 
       if (isSmokeMode()) {
         if (!account) {
-          throw new Error("当前动作为冒烟模式交易，需先连接钱包。");
+          throw new Error("Current action is smoke mode tx, please connect wallet first.");
         }
 
         const stableCoinType =
@@ -645,10 +645,10 @@ export function AgentDrawer() {
             typeof action.payload?.invoiceId === "string"
               ? action.payload.invoiceId
               : parseInvoiceIdFromPath(location.pathname);
-          if (!invoiceId) throw new Error("支付动作缺少 invoiceId。");
+          if (!invoiceId) throw new Error("Pay action missing invoiceId.");
 
           const invoice = smokeGetInvoice(invoiceId);
-          if (!invoice) throw new Error("冒烟模式下未找到该账单，无法支付。");
+          if (!invoice) throw new Error("Invoice not found in smoke mode, cannot pay.");
 
           smokeFeedback = smokePayInvoice({
             invoiceId: invoice.objectId,
@@ -676,7 +676,7 @@ export function AgentDrawer() {
             digest: "",
             status: "failure",
             explorerUrl: "",
-            errorMessage: `冒烟模式不支持动作：${action.actionType}`
+            errorMessage: `Smoke mode does not support action: ${action.actionType}`
           };
         }
 
@@ -692,7 +692,7 @@ export function AgentDrawer() {
         }));
 
         if (feedback.status === "failure") {
-          setActionError(feedback.errorMessage || "动作执行失败。");
+          setActionError(feedback.errorMessage || "Action failed.");
         }
 
         setMessages((prev) => [
@@ -700,7 +700,7 @@ export function AgentDrawer() {
           {
             id: buildMessageId(),
             role: "system",
-            text: `动作 ${action.actionType} 已完成：状态 ${feedback.status}，digest=${feedback.digest || "-"}`
+            text: `Action ${action.actionType} Completed: Status ${feedback.status}, digest=${feedback.digest || "-"}`
           }
         ]);
         return;
@@ -712,7 +712,7 @@ export function AgentDrawer() {
           typeof action.payload?.invoiceId === "string"
             ? action.payload.invoiceId
             : parseInvoiceIdFromPath(location.pathname);
-        if (!invoiceId) throw new Error("支付动作缺少 invoiceId。");
+        if (!invoiceId) throw new Error("Pay action missing invoiceId.");
         tx = await toolbox!.buildMintAndPayTx(invoiceId);
       } else if (action.actionType === "REDEEM_ALL") {
         tx = await toolbox!.buildBurnTx({ all: true });
@@ -722,7 +722,7 @@ export function AgentDrawer() {
       } else if (action.actionType === "CLAIM_REVENUE") {
         tx = await toolbox!.buildClaimTx();
       } else {
-        throw new Error(`不支持的动作类型：${action.actionType}`);
+        throw new Error(`Unsupported action type: ${action.actionType}`);
       }
 
       const result = await dAppKit.signAndExecuteTransaction({ transaction: tx });
@@ -742,7 +742,7 @@ export function AgentDrawer() {
         {
           id: buildMessageId(),
           role: "system",
-          text: `动作 ${action.actionType} 已完成：状态=${feedback.status}，digest=${feedback.digest || "-"}`
+          text: `Action ${action.actionType} Completed: Status=${feedback.status}, digest=${feedback.digest || "-"}`
         }
       ]);
     } catch (error) {
@@ -751,7 +751,7 @@ export function AgentDrawer() {
       setPanelState((prev) => ({ ...prev, action: true }));
       setMessages((prev) => [
         ...prev,
-        { id: buildMessageId(), role: "system", text: `动作执行失败：${message}` }
+        { id: buildMessageId(), role: "system", text: `Action Failed: ${message}` }
       ]);
     } finally {
       setActionLoadingType(null);
@@ -785,7 +785,7 @@ export function AgentDrawer() {
     navigate("/quickstart");
     setMessages((prev) => [
       ...prev,
-      { id: buildMessageId(), role: "system", text: "已开启 Smoke 演示模式并跳转到 /quickstart。" }
+      { id: buildMessageId(), role: "system", text: "Enabled Smoke Demo Mode and navigated to /quickstart." }
     ]);
   }
 
@@ -801,10 +801,10 @@ export function AgentDrawer() {
     <>
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
         <span className="rounded-full border border-cyan-300/35 bg-cyan-500/15 px-3 py-1 text-xs text-cyan-100">
-          {agentConfigSaved ? "Agent 配置已保存" : "Agent 配置未保存"}
+          {agentConfigSaved ? "Agent Config Saved" : "Agent Config Unsaved"}
         </span>
         <Button className="agent-fab" onPress={() => setOpen(true)}>
-          智能助手
+          AI Assistant
         </Button>
       </div>
 
@@ -814,10 +814,10 @@ export function AgentDrawer() {
             <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-4 backdrop-blur-md">
               <div>
                 <p className="bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-lg font-bold text-transparent">
-                  结账智能助手
+                  Checkout AI Assistant
                 </p>
                 <p className="text-xs text-slate-400">
-                  支持项目问答 · 演示引导 · 交易动作执行
+                  Support Project Q&A · Demo Guide · Transaction Execution
                 </p>
               </div>
               <Button
@@ -833,56 +833,56 @@ export function AgentDrawer() {
             <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
               <Card variant="secondary" className="panel-card">
                 <Card.Content className="space-y-3">
-                  <p className="text-xs text-slate-400">默认只显示对话。点击按钮展开对应功能面板。</p>
+                  <p className="text-xs text-slate-400">Default shows chat only. Click buttons to expand panels.</p>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant={panelState.suggestions ? "primary" : "secondary"}
                       onPress={() => togglePanel("suggestions")}
                     >
-                      推荐动作
+                      Suggested Actions
                     </Button>
                     <Button
                       size="sm"
                       variant={panelState.quickPrompts ? "primary" : "secondary"}
                       onPress={() => togglePanel("quickPrompts")}
                     >
-                      快捷提示
+                      Quick Prompts
                     </Button>
                     <Button
                       size="sm"
                       variant={panelState.timeline ? "primary" : "secondary"}
                       onPress={() => togglePanel("timeline")}
                     >
-                      时间线/历史
+                      Timeline/History
                     </Button>
                     <Button
                       size="sm"
                       variant={panelState.coach ? "primary" : "secondary"}
                       onPress={() => togglePanel("coach")}
                     >
-                      演示教练
+                      Demo Coach
                     </Button>
                     <Button
                       size="sm"
                       variant={panelState.context ? "primary" : "secondary"}
                       onPress={() => togglePanel("context")}
                     >
-                      当前上下文
+                      Current Context
                     </Button>
                     <Button
                       size="sm"
                       variant={panelState.config ? "primary" : "secondary"}
                       onPress={() => togglePanel("config")}
                     >
-                      Agent 配置
+                      Agent Config
                     </Button>
                     <Button
                       size="sm"
                       variant={panelState.action ? "primary" : "secondary"}
                       onPress={() => togglePanel("action")}
                     >
-                      动作结果
+                      Action Result
                     </Button>
                   </div>
                 </Card.Content>
@@ -910,12 +910,12 @@ export function AgentDrawer() {
                 <Card variant="secondary" className="panel-card">
                   <Card.Content className="space-y-3">
                     {!latestOutput && (
-                      <p className="text-sm text-slate-400">暂无建议。先发送一条消息生成建议动作。</p>
+                      <p className="text-sm text-slate-400">No suggestions yet. Send a message to generate suggested actions.</p>
                     )}
                     {latestOutput && (
                       <>
                         <p className="text-sm font-semibold text-slate-100">
-                          当前建议（{latestOutput.intent}）
+                          Current Suggestion ({latestOutput.intent})
                         </p>
                         <div className="space-y-2">
                           {latestOutput.steps.map((step) => (
@@ -942,7 +942,7 @@ export function AgentDrawer() {
                                 isDisabled={disabled}
                                 onPress={() => executeAction(action)}
                               >
-                                {actionLoadingType === action.actionType ? "执行中..." : action.label}
+                                {actionLoadingType === action.actionType ? "Working..." : action.label}
                               </Button>
                             );
                           })}
@@ -956,7 +956,7 @@ export function AgentDrawer() {
               {panelState.quickPrompts && (
                 <Card variant="secondary" className="panel-card">
                   <Card.Content className="space-y-2">
-                    <p className="text-xs text-slate-400">点一下即可发送，无需手输。</p>
+                    <p className="text-xs text-slate-400">Click to send directly.</p>
                     <div className="flex flex-wrap gap-2">
                       {QUICK_PROMPTS.map((prompt) => (
                         <button
@@ -977,11 +977,11 @@ export function AgentDrawer() {
                 <Card variant="secondary" className="panel-card">
                   <Card.Content className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-slate-100">步骤时间线（可折叠）</p>
-                      <p className="text-xs text-slate-400">{timeline.length} 条</p>
+                      <p className="text-sm font-semibold text-slate-100">Step Timeline (Collapsible)</p>
+                      <p className="text-xs text-slate-400">{timeline.length} Items</p>
                     </div>
                     <p className="text-xs text-slate-400">
-                      历史记录已按 Markdown 结构存储在本地，可直接复制/导出。
+                      History is stored locally in Markdown format, can be copied/exported.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Button
@@ -990,7 +990,7 @@ export function AgentDrawer() {
                         isDisabled={timeline.length === 0}
                         onPress={onCopyHistoryMarkdown}
                       >
-                        复制 Markdown
+                        Copy Markdown
                       </Button>
                       <Button
                         data-testid="agent-export-md-btn"
@@ -998,7 +998,7 @@ export function AgentDrawer() {
                         isDisabled={timeline.length === 0}
                         onPress={onExportTimelineMarkdown}
                       >
-                        导出演示记录 Markdown
+                        Export Demo Log Markdown
                       </Button>
                       <Button
                         data-testid="agent-clear-timeline-btn"
@@ -1006,11 +1006,11 @@ export function AgentDrawer() {
                         isDisabled={timeline.length === 0}
                         onPress={onClearTimeline}
                       >
-                        清空时间线
+                        Clear Timeline
                       </Button>
                     </div>
                     {timeline.length === 0 && (
-                      <p className="text-xs text-slate-400">暂无记录。发送一条指令后会出现在这里。</p>
+                      <p className="text-xs text-slate-400">No records. Send a command to see it here.</p>
                     )}
                     {timeline.map((item) => (
                       <div key={item.id} className="rounded-lg border border-white/10">
@@ -1022,7 +1022,7 @@ export function AgentDrawer() {
                           <span className="text-sm text-slate-100">
                             {item.output.intent} · {formatTime(item.timestampMs)}
                           </span>
-                          <span className="text-xs text-slate-400">{item.collapsed ? "展开" : "收起"}</span>
+                          <span className="text-xs text-slate-400">{item.collapsed ? "Expand" : "Collapse"}</span>
                         </button>
                         {!item.collapsed && (
                           <div className="space-y-2 border-t border-white/10 px-3 py-2">
@@ -1047,36 +1047,36 @@ export function AgentDrawer() {
                 <Card variant="secondary" className="panel-card border-emerald-400/30">
                   <Card.Content className="space-y-3 text-sm text-slate-200">
                     <div className="flex items-center justify-between">
-                      <p className="font-semibold text-emerald-200">演示教练模式</p>
+                      <p className="font-semibold text-emerald-200">Demo Coach Mode</p>
                       <label className="inline-flex items-center gap-2 text-xs">
                         <input
                           type="checkbox"
                           checked={coachModeEnabled}
                           onChange={(event) => handleCoachToggle(event.currentTarget.checked)}
                         />
-                        启用
+                        Enable
                       </label>
                     </div>
                     <p className="text-xs text-slate-300">
-                      进度：{quickstartProgress.percentage}%（{quickstartProgress.completed}/
+                      Progress: {quickstartProgress.percentage}% ({quickstartProgress.completed}/
                       {quickstartProgress.total}）
                     </p>
                     <p className="text-xs text-slate-300">
-                      下一步：{nextDemoStep ? nextDemoStep.title : "已完成全部演示步骤"}
+                      Next: {nextDemoStep ? nextDemoStep.title : "All steps completed"}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Button variant="secondary" onPress={enableDemoModeAndGotoQuickstart}>
-                        开启 Smoke 并进引导页
+                        Enable Smoke & Go to Quickstart
                       </Button>
                       <Button variant="secondary" onPress={gotoNextDemoStep}>
-                        跳到下一步页面
+                        Skip to Next Page
                       </Button>
-                      <Button variant="primary" onPress={() => onSend("继续下一步")}>
-                        让我给出下一步
+                      <Button variant="primary" onPress={() => onSend("Continue to next step")}>
+                        Suggest Next Step
                       </Button>
                     </div>
                     <p className="text-xs text-amber-300">
-                      当前模式：{isSmokeMode() ? "Smoke 演示模式已开启" : "链上真实模式"}
+                      Current Mode: {isSmokeMode() ? "Smoke Demo Mode ON" : "Real Chain Mode"}
                     </p>
                   </Card.Content>
                 </Card>
@@ -1085,8 +1085,8 @@ export function AgentDrawer() {
               {panelState.context && (
                 <Card variant="secondary" className="panel-card">
                   <Card.Content className="space-y-1 text-xs text-slate-300">
-                    <p className="break-all">钱包：{account?.address || "-"}</p>
-                    <p>当前路径：{location.pathname}</p>
+                    <p className="break-all">Wallet: {account?.address || "-"}</p>
+                    <p>Current Path: {location.pathname}</p>
                     <p>InvoiceId：{parseInvoiceIdFromPath(location.pathname) || "-"}</p>
                     {!account && <ConnectWalletButton />}
                   </Card.Content>
@@ -1096,18 +1096,18 @@ export function AgentDrawer() {
               {panelState.config && (
                 <Card variant="secondary" className="panel-card border-cyan-400/30">
                   <Card.Content className="space-y-3 text-xs text-slate-300">
-                    <p className="text-sm font-semibold text-cyan-200">Agent 配置（本地保存）</p>
-                    <p>配置仅存于当前浏览器 localStorage，不会上链，也不会提交到仓库。</p>
+                    <p className="text-sm font-semibold text-cyan-200">Agent Config (Local Save)</p>
+                    <p>Config saved in browser localStorage only, will not be on-chain or committed to repo.</p>
                     <Input
                       aria-label="Agent endpoint"
-                      placeholder="兼容端点（例如 https://dashscope.aliyuncs.com/compatible-mode/v1）"
+                      placeholder="Compatible Endpoint (e.g. https://dashscope.aliyuncs.com/compatible-mode/v1)"
                       value={agentEndpoint}
                       onChange={(event) => setAgentEndpoint(event.currentTarget.value)}
                       variant="secondary"
                     />
                     <Input
                       aria-label="Agent model"
-                      placeholder="模型名（默认 qwen3-max）"
+                      placeholder="Model Name (default qwen3-max)"
                       value={agentModel}
                       onChange={(event) => setAgentModel(event.currentTarget.value)}
                       variant="secondary"
@@ -1115,7 +1115,7 @@ export function AgentDrawer() {
                     <Input
                       aria-label="Agent key"
                       type={showAgentKey ? "text" : "password"}
-                      placeholder="输入 Agent Key（例如 sk-...）"
+                      placeholder="Enter Agent Key (e.g. sk-...)"
                       value={agentKeyInput}
                       onChange={(event) => setAgentKeyInput(event.currentTarget.value)}
                       variant="secondary"
@@ -1127,14 +1127,14 @@ export function AgentDrawer() {
                         checked={llmModeEnabled}
                         onChange={(event) => setLlmModeEnabled(event.currentTarget.checked)}
                       />
-                      开启 LLM 增强模式（默认关闭）
+                      Enable LLM Enhanced Mode (Default Off)
                     </label>
                     <div className="flex flex-wrap gap-2">
                       <Button variant="secondary" onPress={() => setShowAgentKey((prev) => !prev)}>
-                        {showAgentKey ? "隐藏密钥" : "显示密钥"}
+                        {showAgentKey ? "Hide Key" : "Show Key"}
                       </Button>
                       <Button variant="primary" onPress={saveAgentConfig}>
-                        保存配置
+                        Save Config
                       </Button>
                     </div>
                   </Card.Content>
@@ -1144,13 +1144,13 @@ export function AgentDrawer() {
               {panelState.action && (
                 <Card variant="secondary" className="panel-card">
                   <Card.Content className="space-y-2 text-sm">
-                    <p className="font-semibold text-slate-100">动作结果</p>
-                    {!actionError && !txFeedback && <p className="text-slate-400">暂无动作结果。</p>}
+                    <p className="font-semibold text-slate-100">Action Result</p>
+                    {!actionError && !txFeedback && <p className="text-slate-400">No action result.</p>}
                     {actionError && <p className="text-red-300">{actionError}</p>}
                     {txFeedback && (
                       <div className="space-y-1 text-slate-200">
                         <p className="break-all">Digest：{txFeedback.digest || "-"}</p>
-                        <p>状态：{txFeedback.status}</p>
+                        <p>Status: {txFeedback.status}</p>
                         {txFeedback.explorerUrl && (
                           <a
                             className="text-emerald-300 underline"
@@ -1158,7 +1158,7 @@ export function AgentDrawer() {
                             target="_blank"
                             rel="noreferrer"
                           >
-                            打开 Explorer
+                            Open Explorer
                           </a>
                         )}
                       </div>
@@ -1171,8 +1171,8 @@ export function AgentDrawer() {
             <div className="space-y-3 border-t border-white/10 px-4 py-3">
               <div className="flex items-center gap-2">
                 <Input
-                  aria-label="Agent输入"
-                  placeholder="输入：项目功能/如何演示/继续下一步/支付/赎回/领取/查状态"
+                  aria-label="Agent Input"
+                  placeholder="Input: Features/How to demo/Next step/Pay/Redeem/Claim/Check status"
                   value={input}
                   onChange={(event) => setInput(event.currentTarget.value)}
                   onKeyDown={(event) => {
@@ -1189,13 +1189,13 @@ export function AgentDrawer() {
                   isDisabled={loading}
                   onPress={() => onSend()}
                 >
-                  {loading ? "处理中..." : "发送指令"}
+                  {loading ? "Processing..." : "Send Command"}
                 </Button>
                 <Button
                   variant={panelState.quickPrompts ? "primary" : "secondary"}
                   onPress={() => togglePanel("quickPrompts")}
                 >
-                  快捷提示
+                  Quick Prompts
                 </Button>
               </div>
             </div>

@@ -1,80 +1,72 @@
-﻿# 项目名称：稳流支付站（Stableflow Checkout）
+﻿# Project Name: Stableflow Checkout
 
-> 一个基于 Sui 的商户收款与稳定币结算 Monorepo（Move 2024 + React dApp + 规则驱动 Agent + 本地自治模块）。
+> A Sui-based Merchant Checkout & Stablecoin Settlement Monorepo (Move 2024 + React dApp + Rule-based Agent + Local Automation).
 
-## 一、项目简介
+## I. Project Introduction
 
-稳流支付站是一个可运行的开源全栈项目，核心目标是把「商户创建账单」「用户链上支付」「USDC 一键铸造后支付」「赎回与商户结算」打通到同一个产品闭环中，并扩展到“本地自治任务编排”能力。
+Stableflow Checkout is a production-ready open-source full-stack project. Its core goal is to connect "Merchant Invoice Creation", "User On-chain Payment", "USDC Atomic Mint+Pay", and "Redemption & Merchant Settlement" into a single product loop, extending to "Local Automation Task Orchestration" capabilities.
 
-仓库采用 `pnpm workspace` 管理，包含：
+The repository is managed using `pnpm workspace` and includes:
 
-- 前端 dApp（`apps/web`）
-- Move 2024 合约（`packages/move`）
-- 规则驱动 Agent 引擎（`packages/agent`）
-- 架构与演示文档（`docs`）
-- AI 使用披露材料（`ai-disclosure`）
+- Frontend dApp (`apps/web`)
+- Move 2024 Contracts (`packages/move`)
+- Rule-based Agent Engine (`packages/agent`)
+- Architecture & Demo Documentation (`docs`)
+- AI Disclosure Materials (`ai-disclosure`)
 
-## 二、功能描述
+## II. Features
 
-### 1. 商户端（Merchant）
+### 1. Merchant Dashboard
+- Create Product
+- Create Invoice based on Product
+- View created invoices and navigate to payment pages
 
-- 创建商品（Product）
-- 基于商品创建账单（Invoice）
-- 查看已创建账单并进入支付页
+### 2. User Payment (Pay)
+- Standard Pay: Call `pay_invoice<T>` to complete payment
+- Atomic Pay: `USDC -> BrandUSD -> Pay` completed in a single transaction (Mint+Pay)
+- Full Payment Feedback: `digest`, `status`, `Explorer Link`, `Receipt ObjectId`
 
-### 2. 用户支付端（Pay）
+### 3. Redemption
+- Supports `Burn amount` and `Burn all`
+- Page explicit note: MVP defaults to `T+1`, `Instant` is on the roadmap (not faked as live)
 
-- 普通支付：调用 `pay_invoice<T>` 完成付款
-- 一键支付：`USDC -> BrandUSD -> Pay` 在同一笔交易中完成（Mint+Pay）
-- 支付结果完整反馈：`digest`、`status`、`Explorer 链接`、`Receipt ObjectId`
+### 4. Merchant Settlement & Metrics
+- `Claim`: Merchants can trigger yield claim transactions
+- `Metrics`: Read `getTotalSupply()` and `getTotalSupplyByCoinType(type)`
 
-### 3. 赎回（Redeem）
+### 5. Agent Assistant
+- Input: Natural Language + Page Context
+- Output: Intent, Steps, Executable Actions
+- Actions still require user wallet signature after clicking; private keys are not hosted
+- Supports one-click continuous playbook execution: `Invoice -> Mint+Pay -> Burn -> Claim` (Auto-serial, step-by-step feedback)
 
-- 支持 `Burn amount` 与 `Burn all`
-- 页面明确提示：MVP 默认 `T+1`，`Instant` 为路线图（未假装已上线）
+### 6. Quickstart+ Guided Experience
+- Homepage is the guide page (`/quickstart`), connecting merchant creation, atomic payment, redemption, and claiming steps
+- Automatically displays completion and demo progress, supports one-click demo state reset
+- Supports copying "Demo Link" for quick access to the `Smoke` demo path
 
-### 4. 商户结算与指标
+### 7. Local Automation Console (Track 2 Starter Capability)
+- New `/automation` page providing "Plan -> Guard -> Execute" three-stage local task orchestration
+- Task plans configurable with command whitelists, network permissions, Dry Run, and risk approval
+- Execution process and results exportable as Markdown audit logs
+- Runs parallel to Sui/stable-layer main transaction paths, not replacing existing on-chain capabilities
 
-- `Claim`：商户可触发收益领取交易
-- `Metrics`：读取 `getTotalSupply()` 与 `getTotalSupplyByCoinType(type)`
+### 8. Real Chain Verification (De-gamification)
+- Defaults to `REAL` mode; `SMOKE` mode only enabled if URL contains `?smoke=1`
+- Quickstart built-in "Chain Health" card: Displays Network, RPC, Checkpoint, Key Balances
+- Critical transaction buttons automatically disabled if configuration is missing, displaying missing items
+- Payment page preview clearly marks `REAL/SMOKE` to avoid mistaking simulated data for real chain data
 
-### 5. Agent 助手
+## III. Directory Structure
 
-- 输入：自然语言 + 页面上下文
-- 输出：意图、步骤、可执行动作
-- 动作点击后仍由用户钱包签名，私钥不托管
-- 支持一键连续执行剧本：`建单 -> Mint+Pay -> Burn -> Claim`（自动串行，逐步反馈）
+- `apps/web`: Frontend dApp (React + TS + Tailwind + HeroUI)
+- `apps/local-agent`: Local Persistent Agent Service (Node.js + TypeScript)
+- `packages/move`: Move 2024 Contract Package `stableflow_checkout`
+- `packages/agent`: Rule-based Agent Engine
+- `docs`: Architecture, Demo Scripts, Submission Checklist
+- `ai-disclosure`: AI Tools & Prompt Disclosure
 
-### 6. Quickstart+ 引导体验
-
-- 首页即引导页（`/quickstart`），按步骤完成商户创建、一键支付、赎回、领取
-- 自动显示完成度与演示进度，支持一键重置演示状态
-- 支持复制“演示链接”，可快速进入 `Smoke` 演示路径
-
-### 7. 本地自治控制台（Track2 起步能力）
-
-- 新增 `/automation` 页面，提供“计划 -> 守卫 -> 执行”三段式本地任务编排
-- 任务计划可配置命令白名单、网络权限、Dry Run、风险审批
-- 执行过程与结果可导出 Markdown 审计记录
-- 与 Sui/stable-layer 主交易路径并行，不替换既有链上能力
-
-### 7. 真实链校验能力（去“玩具感”增强）
-
-- 默认进入 `REAL` 模式，仅 URL 含 `?smoke=1` 才开启 `SMOKE` 模式
-- Quickstart 内置“链路健康状态”卡片：展示网络、RPC、checkpoint、关键余额
-- 配置缺失时关键交易按钮会自动禁用，并显示缺失项
-- 支付页预览明确标注 `REAL/SMOKE`，避免把模拟数据误判为真实链数据
-
-## 三、目录结构
-
-- `apps/web`：前端 dApp（React + TS + Tailwind + HeroUI）
-- `apps/local-agent`：本地常驻 Agent 服务（Node.js + TypeScript）
-- `packages/move`：Move 2024 合约包 `stableflow_checkout`
-- `packages/agent`：规则驱动 Agent 引擎
-- `docs`：架构、演示脚本、提交清单
-- `ai-disclosure`：AI 工具与 Prompt 披露
-
-## 四、快速启动
+## IV. Quick Start
 
 ```bash
 corepack enable
@@ -83,80 +75,77 @@ pnpm install
 pnpm dev
 ```
 
-默认访问：`http://localhost:5173/#/quickstart`
+Default access: `http://localhost:5173/#/quickstart`
 
-Windows 一键命令：
+Windows One-Click Commands:
 
 ```bat
 start-web.bat
 check-move.bat
 ```
 
-- `start-web.bat`：安装依赖并启动前端（自动打开浏览器）。
-- `check-move.bat`：使用 `tools/sui/sui.exe` 执行 `move build + move test`。
+- `start-web.bat`: Installs dependencies and starts frontend (automatically opens browser).
+- `check-move.bat`: Uses `tools/sui/sui.exe` to execute `move build + move test`.
 
-### 如何启动本地 Agent（apps/local-agent）
+### How to Start Local Agent (apps/local-agent)
 
-0. 安装 OpenClaw CLI（推荐方式见官方文档）：
+0. Install OpenClaw CLI (Recommended, see official docs):
 
 ```bash
 npm install -g openclaw
 ```
 
-官方文档：
-
+Official Docs:
 - https://docs.openclaw.ai/
 - https://docs.openclaw.ai/browser/quick-start
 
-1. 复制环境变量模板（可选配置 LLM）：
+1. Copy Environment Template (Optional LLM Config):
 
 ```bash
 cp apps/local-agent/.env.example apps/local-agent/.env.local
 ```
 
-2. 启动本地常驻服务（默认 `127.0.0.1:3777`）：
+2. Start Local Persistent Service (Default `127.0.0.1:3777`):
 
 ```bash
 pnpm --filter @vibesui/local-agent dev
 ```
 
-或在仓库根目录使用快捷脚本：
+Or use the shortcut script in the root directory:
 
 ```bash
 pnpm dev:local-agent
 ```
 
-3. 健康检查：
+3. Health Check:
 
 ```bash
 curl http://127.0.0.1:3777/health
 ```
 
-核心 API：
-
+Core APIs:
 - `GET /health`
 - `GET /config`
 - `POST /config`
 - `POST /agent/parse`
 - `POST /agent/suggest`
 - `POST /browser/open`
-- `POST /browser/click`（MVP：建议传 OpenClaw 元素 ref）
-- `POST /browser/type`（MVP：建议传 OpenClaw 元素 ref + text）
+- `POST /browser/click` (MVP: Suggest passing OpenClaw element ref)
+- `POST /browser/type` (MVP: Suggest passing OpenClaw element ref + text)
 
-### Local Agent 的 LLM 可选增强（安全兜底）
+### Local Agent Optional LLM Enhancement (Safety Fallback)
 
-- 关闭增强（默认）：`LLM_PROVIDER=none` 或 `LLM_API_KEY` 为空
-  - `POST /agent/parse` 只走规则引擎（关键词/正则）
-- 开启增强：`LLM_PROVIDER=openai|anthropic` 且填写 `LLM_API_KEY`
-  - LLM 仅用于 `text -> {intent, slots}` 结构化解析
-  - 输出必须通过本地校验（intent 白名单 + slots 类型/来源校验），失败自动回退规则引擎
+- Disable Enhancement (Default): `LLM_PROVIDER=none` or empty `LLM_API_KEY`
+  - `POST /agent/parse` only uses rule engine (Keywords/Regex)
+- Enable Enhancement: `LLM_PROVIDER=openai|anthropic` and fill `LLM_API_KEY`
+  - LLM only used for `text -> {intent, slots}` structured parsing
+  - Output must pass local validation (Intent Whitelist + Slots Type/Source Validation), failure auto-fallbacks to rule engine
 
-安全边界（强制）：
+Safety Boundaries (Mandatory):
+- LLM will NOT directly generate transactions
+- LLM will NOT determine amounts/addresses (Only allows parsing values explicitly present in user input)
 
-- LLM 不会直接生成交易
-- LLM 不会决定金额/地址（仅允许解析用户输入中显式出现的值）
-
-快速验证（先打开 dApp，再触发动作）：
+Quick Verification (Open dApp first, then trigger action):
 
 ```bash
 curl http://127.0.0.1:3777/health
@@ -165,26 +154,23 @@ curl -X POST http://127.0.0.1:3777/browser/click -H "Content-Type: application/j
 curl -X POST http://127.0.0.1:3777/browser/type -H "Content-Type: application/json" -d "{\"target\":\"e15\",\"text\":\"100\",\"url\":\"http://localhost:5173/merchant\"}"
 ```
 
-配置持久化：
+Configuration Persistence:
+- Defaults to writing to `~/.stableclaw/config.json`
+- If home directory is unwritable, auto-fallbacks to project root `.local/config.json`
 
-- 默认写入 `~/.stableclaw/config.json`
-- 若主目录不可写，自动回退到项目根目录 `.local/config.json`
+Safety Constraints:
+- Local Agent only saves allowlist and LLM switch configs
+- NEVER saves private keys, mnemonics, or other sensitive wallet info
 
-安全约束：
+## V. Configuration (apps/web/.env)
 
-- 本地 Agent 仅保存 allowlist 与 LLM 开关配置
-- 永远不保存私钥、助记词等钱包敏感信息
-
-## 五、配置说明（apps/web/.env）
-
-复制模板：
+Copy Template:
 
 ```bash
 cp apps/web/.env.example apps/web/.env
 ```
 
-关键配置：
-
+Key Configs:
 - `VITE_SUI_NETWORK`
 - `VITE_SUI_RPC_URL`
 - `VITE_PACKAGE_ID`
@@ -196,26 +182,26 @@ cp apps/web/.env.example apps/web/.env
 - `VITE_STABLE_LAYER_BRAND_USD_TYPE`
 - `VITE_STABLE_LAYER_USDC_TYPE`
 
-### 阿里百炼 Key（环境变量方式）
+### Alibaba DashScope Key (Env Var Way)
 
-- 复制：`packages/agent/.env.example -> packages/agent/.env.local`
-- 填写：
+- Copy: `packages/agent/.env.example -> packages/agent/.env.local`
+- Fill:
   - `DASHSCOPE_API_KEY`
-  - `DASHSCOPE_BASE_URL`（默认 `https://dashscope.aliyuncs.com/compatible-mode/v1`）
-  - `DASHSCOPE_MODEL`（默认 `qwen3-max`）
-- 安全说明：
-  - `packages/agent/.env.local` 已被 `.gitignore` 忽略，不会上传。
-  - **不要**把密钥放进 `apps/web/.env` 的 `VITE_*` 变量中，前端构建后会暴露给所有访问者。
+  - `DASHSCOPE_BASE_URL` (Default `https://dashscope.aliyuncs.com/compatible-mode/v1`)
+  - `DASHSCOPE_MODEL` (Default `qwen3-max`)
+- Safety Note:
+  - `packages/agent/.env.local` is ignored by `.gitignore` and will not be uploaded.
+  - **DO NOT** put keys into `apps/web/.env` `VITE_*` variables, as frontend builds will expose them to all visitors.
 
-## 六、合约构建与发布（Move 2024）
+## VI. Contract Build & Publish (Move 2024)
 
-若系统未全局安装 `sui`，可把 Windows CLI 解压到 `tools/sui`，然后使用：
+If `sui` is not installed globally, verify Windows CLI is unzipped to `tools/sui`, then use:
 
 ```bat
 check-move.bat
 ```
 
-或手动执行：
+Or manually execute:
 
 ```bash
 cd packages/move
@@ -224,9 +210,9 @@ sui move test
 sui client publish --gas-budget 200000000
 ```
 
-发布后把 `PACKAGE_ID`、`MERCHANT_ID`、币种 Type 等同步写入 `apps/web/.env`。
+After publishing, sync `PACKAGE_ID`, `MERCHANT_ID`, Coin Types, etc., to `apps/web/.env`.
 
-## 七、质量验证
+## VII. Quality Verification
 
 ```bash
 pnpm lint
@@ -235,13 +221,13 @@ pnpm test
 pnpm test:e2e
 ```
 
-> `pnpm test:e2e` 覆盖核心冒烟链路：Mint+Pay / Burn / Claim。
+> `pnpm test:e2e` covers core smoke paths: Mint+Pay / Burn / Claim.
 
-## 八、参赛合规清单
+## VIII. Competition Compliance Checklist
 
-- [X]  Move 2024：`packages/move/Move.toml` 使用 `edition = "2024.beta"`
-- [X]  官方 Sui SDK：核心代码使用官方 `@mysten/sui`
-- [X]  stable-layer 核心路径：Mint / Burn / Claim / Supply 均已接入
-- [X]  可运行产品：提供完整 Web dApp 与演示文档
-- [X]  开源材料：合约、前端、Agent、部署说明齐备
-- [X]  AI 披露：`ai-disclosure/tools.md` + `ai-disclosure/prompts/*.md`
+- [X] Move 2024: `packages/move/Move.toml` uses `edition = "2024.beta"`
+- [X] Official Sui SDK: Core code uses official `@mysten/sui`
+- [X] Stable Layer Core Path: Mint / Burn / Claim / Supply all integrated
+- [X] Runnable Product: Provides complete Web dApp & Demo Docs
+- [X] Open Source Materials: Contracts, Frontend, Agent, Deployment Instructions ready
+- [X] AI Disclosure: `ai-disclosure/tools.md` + `ai-disclosure/prompts/*.md`

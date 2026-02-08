@@ -80,16 +80,16 @@ function includesAny(text: string, keywords: string[]): boolean {
 function detectIntent(goal: string): LocalAutomationIntent {
   const text = normalize(goal);
 
-  if (includesAny(text, ["download", "下载", "整理", "归档", "清理"])) {
+  if (includesAny(text, ["download", "organize", "archive", "clean", "cleanup"])) {
     return "WORKSPACE_CLEANUP";
   }
-  if (includesAny(text, ["ffmpeg", "转码", "视频", "音频", "media"])) {
+  if (includesAny(text, ["ffmpeg", "transcode", "video", "audio", "media"])) {
     return "MEDIA_PIPELINE";
   }
-  if (includesAny(text, ["git", "仓库", "分支", "pull", "commit"])) {
+  if (includesAny(text, ["git", "repo", "branch", "pull", "commit"])) {
     return "GIT_MAINTENANCE";
   }
-  if (includesAny(text, ["备份", "backup", "压缩", "archive", "打包"])) {
+  if (includesAny(text, ["backup", "compress", "archive", "zip"])) {
     return "BACKUP_ARCHIVE";
   }
   return "WEB_AUTOMATION";
@@ -109,31 +109,31 @@ function firstWord(command: string): string {
 
 function buildPlanSummary(intent: LocalAutomationIntent): string {
   if (intent === "WORKSPACE_CLEANUP") {
-    return "扫描下载目录、按类型归档并生成变更报告。";
+    return "Scan download directory, organize by type, and generate change report.";
   }
   if (intent === "MEDIA_PIPELINE") {
-    return "执行媒体批处理（转码/压缩）并保留原始文件清单。";
+    return "Execute media batch processing (transcode/compress) and keep original file list.";
   }
   if (intent === "GIT_MAINTENANCE") {
-    return "检查仓库状态、同步远端并生成可审计变更日志。";
+    return "Check repo status, sync remote, and generate auditable change log.";
   }
   if (intent === "BACKUP_ARCHIVE") {
-    return "创建工作区增量备份并输出校验信息。";
+    return "Create incremental backup of workspace and output checksums.";
   }
-  return "执行受控的浏览器自动化步骤并产出操作回放记录。";
+  return "Execute controlled browser automation steps and produce operation replay record.";
 }
 
 function buildWarnings(context: LocalAutomationContext, intent: LocalAutomationIntent): string[] {
   const warnings: string[] = [];
 
   if (context.dryRun) {
-    warnings.push("当前为 Dry Run，仅模拟执行，不会写入本地文件。");
+    warnings.push("Current mode is Dry Run. Simulation only, no local files will be written.");
   }
   if (!context.allowNetwork && (intent === "WEB_AUTOMATION" || intent === "GIT_MAINTENANCE")) {
-    warnings.push("网络能力已关闭，联网步骤将被阻断。");
+    warnings.push("Network capability disabled. Online steps will be blocked.");
   }
   if (context.allowedCommandPrefixes.length === 0) {
-    warnings.push("未配置允许命令前缀，所有 shell 步骤会被阻断。");
+    warnings.push("No allowed command prefixes configured. All shell steps will be blocked.");
   }
 
   return warnings;
@@ -168,16 +168,16 @@ export class LocalAutomationPlanner {
       return [
         {
           id: "scan-downloads",
-          title: "扫描下载目录",
-          details: "列出最近 7 天新增文件并按扩展名分组。",
+          title: "Scan Downloads Directory",
+          details: "List new files from last 7 days grouped by extension.",
           kind: "file",
           risk: "low",
           requiresApproval: false
         },
         {
           id: "organize-files",
-          title: "执行分类整理",
-          details: "按图片/文档/压缩包归档到子目录，保留冲突文件。",
+          title: "Execute Organization",
+          details: "Archive to subdirectories (images/docs/archives), keeping conflicting files.",
           kind: "shell",
           risk: "medium",
           requiresApproval: true,
@@ -186,8 +186,8 @@ export class LocalAutomationPlanner {
         },
         {
           id: "report-result",
-          title: "生成整理报告",
-          details: "输出 Markdown 报告，包含移动前后统计。",
+          title: "Generate Report",
+          details: "Output Markdown report with before/after statistics.",
           kind: "file",
           risk: "low",
           requiresApproval: false
@@ -199,26 +199,26 @@ export class LocalAutomationPlanner {
       return [
         {
           id: "discover-media",
-          title: "发现媒体文件",
-          details: "扫描目标目录中的 mp4/mov/mkv/wav 文件。",
+          title: "Discover Media Files",
+          details: "Scan target directory for mp4/mov/mkv/wav files.",
           kind: "file",
           risk: "low",
           requiresApproval: false
         },
         {
           id: "transcode",
-          title: "执行转码任务",
-          details: "调用 ffmpeg 生成统一编码格式。",
+          title: "Execute Transcode Task",
+          details: "Call ffmpeg to generate unified encoding format.",
           kind: "shell",
           risk: "medium",
           requiresApproval: true,
           command: "ffmpeg -version",
-          fallback: "若本机无 ffmpeg，则提示安装并终止执行。"
+          fallback: "If ffmpeg not found, prompt installation and abort."
         },
         {
           id: "checksum",
-          title: "生成校验摘要",
-          details: "为输出文件生成 sha256 清单。",
+          title: "Generate Checksum",
+          details: "Generate sha256 manifest for output files.",
           kind: "shell",
           risk: "low",
           requiresApproval: false,
@@ -232,8 +232,8 @@ export class LocalAutomationPlanner {
       return [
         {
           id: "git-status",
-          title: "检查仓库状态",
-          details: "读取当前工作区变更与分支信息。",
+          title: "Check Repo Status",
+          details: "Read current workspace changes and branch info.",
           kind: "git",
           risk: "low",
           requiresApproval: false,
@@ -241,8 +241,8 @@ export class LocalAutomationPlanner {
         },
         {
           id: "git-fetch",
-          title: "同步远端信息",
-          details: "抓取远端更新但不自动合并。",
+          title: "Sync Remote Info",
+          details: "Fetch remote updates without auto-merge.",
           kind: "git",
           risk: "medium",
           requiresApproval: true,
@@ -250,8 +250,8 @@ export class LocalAutomationPlanner {
         },
         {
           id: "git-report",
-          title: "输出维护建议",
-          details: "根据差异生成 pull/rebase/cherry-pick 建议。",
+          title: "Output Maintenance Advice",
+          details: "Generate pull/rebase/cherry-pick suggestions based on diff.",
           kind: "file",
           risk: "low",
           requiresApproval: false
@@ -263,16 +263,16 @@ export class LocalAutomationPlanner {
       return [
         {
           id: "collect-manifest",
-          title: "生成备份清单",
-          details: "记录待备份目录和排除规则。",
+          title: "Generate Backup Manifest",
+          details: "Record directories to backup and exclusion rules.",
           kind: "file",
           risk: "low",
           requiresApproval: false
         },
         {
           id: "archive-workspace",
-          title: "创建压缩备份",
-          details: "压缩工作区为时间戳归档包。",
+          title: "Create Compressed Archive",
+          details: "Compress workspace into timestamped archive.",
           kind: "shell",
           risk: "medium",
           requiresApproval: true,
@@ -281,8 +281,8 @@ export class LocalAutomationPlanner {
         },
         {
           id: "verify-archive",
-          title: "验证备份完整性",
-          details: "校验归档文件可读并写入摘要。",
+          title: "Verify Archive Integrity",
+          details: "Verify archive readability and write checksum.",
           kind: "shell",
           risk: "low",
           requiresApproval: false,
@@ -295,24 +295,24 @@ export class LocalAutomationPlanner {
     return [
       {
         id: "prepare-session",
-        title: "准备浏览器会话",
-        details: "加载目标站点并校验登录态。",
+        title: "Prepare Browser Session",
+        details: "Load target site and verify login state.",
         kind: "browser",
         risk: "medium",
         requiresApproval: true
       },
       {
         id: "run-browser-flow",
-        title: "执行浏览器自动化流程",
-        details: "按步骤点击、填写、提交，并保存截图。",
+        title: "Execute Browser Automation Flow",
+        details: "Click, type, submit step-by-step, and save screenshots.",
         kind: "browser",
         risk: "high",
         requiresApproval: true
       },
       {
         id: "write-replay",
-        title: "写入回放记录",
-        details: "输出操作时间线，便于复盘和审计。",
+        title: "Write Replay Record",
+        details: "Output operation timeline for review and audit.",
         kind: "file",
         risk: "low",
         requiresApproval: false
@@ -329,27 +329,27 @@ export class LocalAutomationGuard {
     for (const step of plan.steps) {
       if (step.kind === "shell" || step.kind === "git") {
         if (!step.command) {
-          blockedReasons.push(`步骤 ${step.id} 缺少命令定义。`);
+          blockedReasons.push(`Step ${step.id} missing command definition.`);
           continue;
         }
 
         const prefix = firstWord(step.command);
         if (!context.allowedCommandPrefixes.includes(prefix)) {
-          blockedReasons.push(`步骤 ${step.id} 使用了未授权命令前缀: ${prefix}`);
+          blockedReasons.push(`Step ${step.id} uses unauthorized command prefix: ${prefix}`);
         }
       }
 
       if ((step.kind === "browser" || step.kind === "git") && !context.allowNetwork) {
-        blockedReasons.push(`步骤 ${step.id} 需要网络能力，但当前 allowNetwork=false`);
+        blockedReasons.push(`Step ${step.id} requires network, but allowNetwork=false`);
       }
 
       if (step.risk === "high" && !step.requiresApproval) {
-        warnings.push(`步骤 ${step.id} 为高风险，建议强制 requiresApproval=true`);
+        warnings.push(`Step ${step.id} is high risk, recommend forcing requiresApproval=true`);
       }
     }
 
     if (plan.steps.length === 0) {
-      blockedReasons.push("计划为空，无法执行。");
+      blockedReasons.push("Plan is empty, cannot execute.");
     }
 
     return {
@@ -383,16 +383,16 @@ export class InMemoryLocalAutomationRunner {
         records.push({
           stepId: step.id,
           status: "blocked",
-          output: "高风险步骤需要人工审批。",
+          output: "High risk step requires manual approval.",
           command: step.command
         });
-        blockedReasons.push(`步骤 ${step.id} 未审批`);
+        blockedReasons.push(`Step ${step.id} not approved`);
         continue;
       }
 
       const output = input.simulate
-        ? `模拟执行: ${step.title}`
-        : `执行完成: ${step.title}`;
+        ? `Simulated: ${step.title}`
+        : `Executed: ${step.title}`;
 
       records.push({
         stepId: step.id,
@@ -417,17 +417,17 @@ export function localAutomationToMarkdown(
   result?: LocalAutomationRunResult
 ): string {
   const lines: string[] = [];
-  lines.push(`# 本地自治任务报告`);
+  lines.push(`# Local Automation Task Report`);
   lines.push("");
-  lines.push(`- 计划 ID: ${plan.id}`);
-  lines.push(`- 意图: ${plan.intent}`);
-  lines.push(`- 创建时间: ${plan.createdAtIso}`);
-  lines.push(`- 预计耗时(分钟): ${plan.estimatedMinutes}`);
+  lines.push(`- Plan ID: ${plan.id}`);
+  lines.push(`- Intent: ${plan.intent}`);
+  lines.push(`- Created At: ${plan.createdAtIso}`);
+  lines.push(`- Estimated Minutes: ${plan.estimatedMinutes}`);
   lines.push("");
-  lines.push("## 计划摘要");
+  lines.push("## Plan Summary");
   lines.push(plan.summary);
   lines.push("");
-  lines.push("## 步骤清单");
+  lines.push("## Steps");
   for (const step of plan.steps) {
     lines.push(
       `- [${step.risk}] ${step.title} | kind=${step.kind} | approval=${step.requiresApproval ? "yes" : "no"}`
@@ -436,7 +436,7 @@ export function localAutomationToMarkdown(
     if (step.command) lines.push(`  - command: \`${step.command}\``);
   }
   lines.push("");
-  lines.push("## 守卫检查");
+  lines.push("## Guard Check");
   lines.push(`- safe: ${guard.safe}`);
   if (guard.warnings.length > 0) {
     lines.push("- warnings:");
@@ -449,7 +449,7 @@ export function localAutomationToMarkdown(
   lines.push("");
 
   if (result) {
-    lines.push("## 执行结果");
+    lines.push("## Execution Result");
     lines.push(`- status: ${result.status}`);
     for (const record of result.records) {
       lines.push(`- ${record.stepId}: ${record.status} (${record.output})`);

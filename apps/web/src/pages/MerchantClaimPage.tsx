@@ -19,21 +19,21 @@ function inferClaimHints(message: string): string[] {
       normalized
     )
   ) {
-    hints.push("当前钱包可能不是收益接收方，或尚未被授予领取权限。");
+    hints.push("Current wallet may not be the recipient, or has not been granted claim permission.");
   }
   if (/no rewards|nothing to claim|empty|insufficient|zero/i.test(normalized)) {
-    hints.push("当前稳定币暂无可领取收益。");
+    hints.push("No rewards available for the current stablecoin.");
   }
   if (/stable|coin type|type argument|type mismatch/i.test(normalized)) {
-    hints.push("稳定币类型配置可能错误（`VITE_STABLE_LAYER_STABLE_COIN_TYPE`）。");
+    hints.push("Stablecoin type config may be incorrect (`VITE_STABLE_LAYER_STABLE_COIN_TYPE`).");
   }
   if (/rpc|network|timeout|fetch|503|502|500/i.test(normalized)) {
-    hints.push("RPC 节点可能不稳定或暂时不可用。");
+    hints.push("RPC node may be unstable or temporarily unavailable.");
   }
 
   if (hints.length === 0) {
-    hints.push("请检查钱包权限，确认该地址具备领取资格。");
-    hints.push("请核对 `.env` 中 stable-layer 与网络配置。");
+    hints.push("Please check wallet permissions to confirm eligibility.");
+    hints.push("Please verify `.env` stable-layer and network config.");
   }
 
   return hints;
@@ -61,12 +61,12 @@ export default function MerchantClaimPage() {
 
   async function onClaim(): Promise<void> {
     if (!account) {
-      setTxError("请先连接钱包。");
+      setTxError("Please connect wallet first.");
       setFailureHints([]);
       return;
     }
     if (claimConfigError) {
-      setTxError(`配置不完整：${claimConfigError}`);
+      setTxError(`Config incomplete: ${claimConfigError}`);
       setFailureHints([]);
       return;
     }
@@ -112,7 +112,7 @@ export default function MerchantClaimPage() {
       setHistoryRefreshKey((prev) => prev + 1);
 
       if (feedback.status === "failure") {
-        const message = feedback.errorMessage || "领取交易执行失败。";
+        const message = feedback.errorMessage || "Claim transaction failed.";
         setTxError(message);
         setFailureHints(inferClaimHints(message));
       }
@@ -130,12 +130,12 @@ export default function MerchantClaimPage() {
       <Card variant="secondary" className="panel-card shadow-[0_20px_60px_rgba(5,12,22,0.45)]">
         <Card.Content className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">商户收益领取</h1>
+            <h1 className="text-2xl font-bold text-slate-100">Merchant Claim</h1>
             <p className="text-sm text-slate-300">
-              触发 stable-layer 领取逻辑，将可领取收益发送到当前钱包。
+              Trigger stable-layer claim logic to send claimable rewards to the current wallet.
             </p>
             <p className="text-xs text-slate-400">
-              稳定币类型：{appConfig.stableLayer.stableCoinType || "未配置"}
+              Stablecoin Type: {appConfig.stableLayer.stableCoinType || "Not Configured"}
             </p>
           </div>
           <ConnectWalletButton />
@@ -145,7 +145,7 @@ export default function MerchantClaimPage() {
       {claimConfigError && !smokeMode && (
         <Card variant="secondary" className="panel-card border-red-400/40">
           <Card.Content className="text-sm text-red-300">
-            领取功能不可用：{claimConfigError}
+            Claim unavailable: {claimConfigError}
           </Card.Content>
         </Card>
       )}
@@ -158,16 +158,16 @@ export default function MerchantClaimPage() {
             isDisabled={!account || txLoading || !!claimConfigError}
             onPress={onClaim}
           >
-            领取收益
+            Claim Rewards
           </Button>
-          <TxFeedbackCard label="领取交易" loading={txLoading} error={txError} result={txResult} />
+          <TxFeedbackCard label="Claim Tx" loading={txLoading} error={txError} result={txResult} />
         </Card.Content>
       </Card>
 
       {txError && failureHints.length > 0 && (
         <Card variant="secondary" className="panel-card border-amber-400/30">
           <Card.Content className="space-y-2 text-sm text-amber-200">
-            <p className="font-semibold">可能原因</p>
+            <p className="font-semibold">Possible Reasons</p>
             <ul className="list-disc space-y-1 pl-5">
               {failureHints.map((hint) => (
                 <li key={hint}>{hint}</li>
@@ -177,7 +177,7 @@ export default function MerchantClaimPage() {
         </Card>
       )}
 
-      <RecentTxHistoryCard title="本地最近交易（演示用）" refreshKey={historyRefreshKey} />
+      <RecentTxHistoryCard title="Recent Local Tx (Demo)" refreshKey={historyRefreshKey} />
     </div>
   );
 }

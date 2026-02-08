@@ -52,7 +52,7 @@ import {
 function formatRpcAwareError(error: unknown): string {
   const message = parseErrorMessage(error);
   if (/rpc|fetch|network|timeout|503|502|500/i.test(message)) {
-    return `RPC 请求异常：${message}`;
+    return `RPC Request Exception: ${message}`;
   }
   return message;
 }
@@ -84,17 +84,17 @@ function renderProofCard(title: string, proof: TxChainProof | null) {
     <Card variant="secondary" className="panel-card">
       <Card.Content className="space-y-2 text-sm text-slate-200">
         <p className="font-semibold text-slate-100">{title}</p>
-        {!proof && <p className="text-slate-400">暂无链上证明（先完成一笔交易）。</p>}
+        {!proof && <p className="text-slate-400">No on-chain proof (Complete a tx first).</p>}
         {proof && (
           <>
             <p className="break-all">Digest：{proof.digest}</p>
-            <p>状态：{proof.status}</p>
-            <p>检查点：{proof.checkpoint ?? "-"}</p>
-            <p>事件数量：{proof.eventCount}</p>
-            <p>Gas 消耗(MIST)：{proof.gasUsedMIST ?? "-"}</p>
-            <p>时间：{formatTimestamp(proof.timestampMs)}</p>
+            <p>Status: {proof.status}</p>
+            <p>Checkpoint: {proof.checkpoint ?? "-"}</p>
+            <p>Event Count: {proof.eventCount}</p>
+            <p>Gas Used(MIST): {proof.gasUsedMIST ?? "-"}</p>
+            <p>Time: {formatTimestamp(proof.timestampMs)}</p>
             <p className="break-all">
-              新建对象：{proof.createdObjectIds.length > 0 ? proof.createdObjectIds.join(", ") : "-"}
+              Created Objects: {proof.createdObjectIds.length > 0 ? proof.createdObjectIds.join(", ") : "-"}
             </p>
             <a
               href={toExplorerTxUrl(proof.digest)}
@@ -102,7 +102,7 @@ function renderProofCard(title: string, proof: TxChainProof | null) {
               rel="noreferrer"
               className="text-emerald-300 underline"
             >
-              在区块浏览器复核该交易
+              Verify in Explorer
             </a>
           </>
         )}
@@ -113,11 +113,11 @@ function renderProofCard(title: string, proof: TxChainProof | null) {
 
 function localAgentActionLabel(action: LocalAgentAction): string {
   if (action.label && action.label.trim()) return action.label;
-  if (action.type === "OPEN_URL") return "在受控浏览器打开链接";
-  if (action.type === "MINT_AND_PAY") return "执行一键 Mint+Pay";
-  if (action.type === "BURN") return "前往赎回流程";
-  if (action.type === "CLAIM") return "前往收益领取流程";
-  if (action.type === "CHECK_TX") return "检查交易状态";
+  if (action.type === "OPEN_URL") return "Open URL in Controlled Browser";
+  if (action.type === "MINT_AND_PAY") return "Execute One-Click Mint+Pay";
+  if (action.type === "BURN") return "Go to Redeem Flow";
+  if (action.type === "CLAIM") return "Go to Claim Flow";
+  if (action.type === "CHECK_TX") return "Check Transaction Status";
   return action.type;
 }
 
@@ -224,24 +224,24 @@ export default function PayInvoicePage() {
       const maxAmount = appConfig.policy.maxMintAndPayAmountU64;
 
       const summary = [
-        "请确认即将执行一键 Mint+Pay 交易：",
-        `- 账单 ID: ${currentInvoiceId}`,
-        `- 交易金额(u64): ${amountU64.toString()}`,
-        `- 稳定币类型: ${stableCoinType}`,
-        `- 调用目标: ${callTarget}`,
-        `- 策略上限(u64): ${maxAmount.toString()}`
+        "Please confirm Mint+Pay transaction:",
+        `- Invoice ID: ${currentInvoiceId}`,
+        `- Amount(u64): ${amountU64.toString()}`,
+        `- StableCoin Type: ${stableCoinType}`,
+        `- Call Target: ${callTarget}`,
+        `- Policy Max(u64): ${maxAmount.toString()}`
       ].join("\n");
 
       if (!window.confirm(summary)) {
-        return { ok: false, message: "用户取消了交易确认。" };
+        return { ok: false, message: "User cancelled transaction confirmation." };
       }
 
       if (amountU64 > maxAmount) {
         const secondConfirm = window.confirm(
-          `交易金额 ${amountU64.toString()} 超过策略上限 ${maxAmount.toString()}。\n请再次确认是否继续执行。`
+          `Transaction amount ${amountU64.toString()} exceeds policy max ${maxAmount.toString()}.\nPlease confirm again.`
         );
         if (!secondConfirm) {
-          return { ok: false, message: "交易被策略限制拦截：超额且未通过二次确认。" };
+          return { ok: false, message: "Transaction blocked by policy: Exceeds limit and rejected secondary confirmation." };
         }
       }
 
@@ -252,7 +252,7 @@ export default function PayInvoicePage() {
 
   const loadInvoiceData = useCallback(async () => {
     if (!invoiceId) {
-      setPageError("URL 中缺少 invoiceId。");
+      setPageError("Missing invoiceId in URL.");
       setInvoice(null);
       setProduct(null);
       return;
@@ -263,7 +263,7 @@ export default function PayInvoicePage() {
     if (smokeMode) {
       const currentInvoice = smokeGetInvoice(invoiceId);
       if (!currentInvoice) {
-        setPageError("冒烟模式中未找到该账单。");
+        setPageError("Invoice not found in smoke mode.");
         setInvoice(null);
         setProduct(null);
         return;
@@ -407,7 +407,7 @@ export default function PayInvoicePage() {
       setLocalAgentActions([]);
       const message = formatRpcAwareError(error);
       setLocalAgentSuggestError(message);
-      pushErrorToast("Local Agent 建议失败", message, error);
+      pushErrorToast("Local Agent Suggest Failed", message, error);
     } finally {
       setLocalAgentSuggestLoading(false);
     }
@@ -419,21 +419,21 @@ export default function PayInvoicePage() {
 
   async function onPay(): Promise<void> {
     if (!account) {
-      const message = "请先连接钱包。";
+      const message = "Please connect wallet first.";
       setPayTxError(message);
-      pushErrorToast("直接支付失败", message);
+      pushErrorToast("Direct Pay Failed", message);
       return;
     }
     if (!invoice) {
-      const message = "账单信息尚未加载完成。";
+      const message = "Invoice data not loaded.";
       setPayTxError(message);
-      pushErrorToast("直接支付失败", message);
+      pushErrorToast("Direct Pay Failed", message);
       return;
     }
     if (payConfigError) {
-      const message = `配置不完整：${payConfigError}`;
+      const message = `Config incomplete: ${payConfigError}`;
       setPayTxError(message);
-      pushErrorToast("直接支付失败", message);
+      pushErrorToast("Direct Pay Failed", message);
       return;
     }
 
@@ -491,7 +491,7 @@ export default function PayInvoicePage() {
     } catch (error) {
       const message = formatRpcAwareError(error);
       setPayTxError(message);
-      pushErrorToast("直接支付失败", message, error);
+      pushErrorToast("Direct Pay Failed", message, error);
     } finally {
       setPayTxLoading(false);
     }
@@ -499,28 +499,28 @@ export default function PayInvoicePage() {
 
   async function onPayWithUsdcMintAndPay(): Promise<void> {
     if (!account) {
-      const message = "请先连接钱包。";
+      const message = "Please connect wallet first.";
       setMintPayError(message);
-      pushErrorToast("一键 Mint+Pay 失败", message);
+      pushErrorToast("Mint+Pay Failed", message);
       return;
     }
     if (!invoice) {
-      const message = "账单信息尚未加载完成。";
+      const message = "Invoice data not loaded.";
       setMintPayError(message);
-      pushErrorToast("一键 Mint+Pay 失败", message);
+      pushErrorToast("Mint+Pay Failed", message);
       return;
     }
     if (mintPayConfigError) {
-      const message = `配置不完整：${mintPayConfigError}`;
+      const message = `Config incomplete: ${mintPayConfigError}`;
       setMintPayError(message);
-      pushErrorToast("一键 Mint+Pay 失败", message);
+      pushErrorToast("Mint+Pay Failed", message);
       return;
     }
 
     const policyCheck = confirmMintAndPayPolicy(invoice.amountU64, invoice.objectId);
     if (!policyCheck.ok) {
       setMintPayError(policyCheck.message);
-      pushErrorToast("交易策略限制", policyCheck.message);
+      pushErrorToast("Policy Restriction", policyCheck.message);
       return;
     }
 
@@ -579,7 +579,7 @@ export default function PayInvoicePage() {
     } catch (error) {
       const message = formatRpcAwareError(error);
       setMintPayError(message);
-      pushErrorToast("一键 Mint+Pay 失败", message, error);
+      pushErrorToast("Mint+Pay Failed", message, error);
     } finally {
       setMintPayLoading(false);
     }
@@ -596,15 +596,15 @@ export default function PayInvoicePage() {
       const result = await openInControlledBrowser(targetUrl);
       if (result.fallbackUsed) {
         setLocalAgentMessage(
-          `已触发回退浏览器打开。${result.warning ? `OpenClaw 提示：${result.warning}` : ""}`
+          `Fallback browser open triggered. ${result.warning ? `OpenClaw Warning: ${result.warning}` : ""}`
         );
       } else {
-        setLocalAgentMessage("已在受控浏览器打开当前账单页面。");
+        setLocalAgentMessage("Current invoice page opened in controlled browser.");
       }
     } catch (error) {
       const message = formatRpcAwareError(error);
       setLocalAgentError(message);
-      pushErrorToast("受控浏览器打开失败", message, error);
+      pushErrorToast("Controlled Browser Open Failed", message, error);
     } finally {
       setLocalAgentLoading(false);
     }
@@ -612,9 +612,9 @@ export default function PayInvoicePage() {
 
   async function onRunLocalAgentAction(action: LocalAgentAction): Promise<void> {
     if (action.disabled || action.disabledReason) {
-      const message = action.disabledReason || "该动作当前不可执行。";
+      const message = action.disabledReason || "Action currently unavailable.";
       setLocalAgentError(message);
-      pushErrorToast("Agent 动作不可执行", message);
+      pushErrorToast("Agent Action Unavailable", message);
       return;
     }
 
@@ -644,28 +644,28 @@ export default function PayInvoicePage() {
     if (action.type === "CHECK_TX") {
       const digest = action.payload.digest?.trim();
       if (!digest) {
-        const message = "缺少 digest，无法检查交易状态。";
+        const message = "Missing digest, cannot check tx status.";
         setLocalAgentError(message);
-        pushErrorToast("检查交易状态失败", message);
+        pushErrorToast("Check Tx Status Failed", message);
         return;
       }
 
       const explorerUrl = toExplorerTxUrl(digest);
       if (!explorerUrl) {
-        const message = "当前网络未配置区块浏览器地址。";
+        const message = "Explorer URL not configured for current network.";
         setLocalAgentError(message);
-        pushErrorToast("检查交易状态失败", message);
+        pushErrorToast("Check Tx Status Failed", message);
         return;
       }
 
       window.open(explorerUrl, "_blank", "noopener,noreferrer");
-      setLocalAgentMessage(`已打开交易 ${digest} 的区块浏览器页面。`);
+      setLocalAgentMessage(`Opened explorer for tx ${digest}.`);
       return;
     }
 
-    const message = `未支持的动作类型：${action.type}`;
+    const message = `Unsupported action type: ${action.type}`;
     setLocalAgentError(message);
-    pushErrorToast("Agent 动作失败", message);
+    pushErrorToast("Agent Action Failed", message);
   }
 
   return (
@@ -673,12 +673,12 @@ export default function PayInvoicePage() {
       <Card variant="secondary" className="panel-card shadow-[0_20px_60px_rgba(6,16,30,0.45)]">
         <Card.Content className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">账单支付</h1>
-            <p className="break-all text-sm text-slate-300">账单 ID：{invoiceId}</p>
-            <p className="text-xs text-slate-400">支付币种：{appConfig.contract.payCoinType}</p>
+            <h1 className="text-2xl font-bold text-slate-100">Pay Invoice</h1>
+            <p className="break-all text-sm text-slate-300">Invoice ID: {invoiceId}</p>
+            <p className="text-xs text-slate-400">Pay Coin: {appConfig.contract.payCoinType}</p>
             <p className="text-xs text-slate-400">
-              稳定币类型：{appConfig.stableLayer.stableCoinType || "未配置"} | USDC 类型：
-              {appConfig.stableLayer.usdcType || "未配置"}
+              Stable Coin: {appConfig.stableLayer.stableCoinType || "Not Configured"} | USDC Type:
+              {appConfig.stableLayer.usdcType || "Not Configured"}
             </p>
           </div>
           <ConnectWalletButton />
@@ -694,7 +694,7 @@ export default function PayInvoicePage() {
       {payConfigError && !smokeMode && (
         <Card variant="secondary" className="panel-card border-red-400/40">
           <Card.Content className="text-sm text-red-300">
-            直接支付不可用：{payConfigError}
+            Direct Pay Unavailable: {payConfigError}
           </Card.Content>
         </Card>
       )}
@@ -702,20 +702,20 @@ export default function PayInvoicePage() {
       {mintPayConfigError && !smokeMode && (
         <Card variant="secondary" className="panel-card border-amber-400/40">
           <Card.Content className="text-sm text-amber-200">
-            USDC 一键支付不可用：{mintPayConfigError}
+            USDC Mint+Pay Unavailable: {mintPayConfigError}
           </Card.Content>
         </Card>
       )}
 
       <Card variant="secondary" className="panel-card">
         <Card.Content className="space-y-2 text-sm text-slate-200">
-          <p>商品名称：{product?.title ?? "-"}</p>
-          <p>商品价格：{product?.priceU64.toString() ?? "-"}</p>
-          <p>账单金额：{invoice?.amountU64.toString() ?? "-"}</p>
-          <p className="break-all">商户对象：{invoice?.merchantId ?? "-"}</p>
-          <p>账单状态：{invoice?.status === 1 ? "已支付" : invoice?.status === 0 ? "待支付" : "-"}</p>
-          <p className="break-all">买家地址：{invoice?.buyer ?? "-"}</p>
-          <p>创建时间(ms)：{invoice?.createdAtMs.toString() ?? "-"}</p>
+          <p>Product: {product?.title ?? "-"}</p>
+          <p>Price: {product?.priceU64.toString() ?? "-"}</p>
+          <p>Invoice Amount: {invoice?.amountU64.toString() ?? "-"}</p>
+          <p className="break-all">Merchant: {invoice?.merchantId ?? "-"}</p>
+          <p>Status: {invoice?.status === 1 ? "Paid" : invoice?.status === 0 ? "Pending" : "-"}</p>
+          <p className="break-all">Buyer: {invoice?.buyer ?? "-"}</p>
+          <p>Created At(ms): {invoice?.createdAtMs.toString() ?? "-"}</p>
         </Card.Content>
       </Card>
 
@@ -723,41 +723,40 @@ export default function PayInvoicePage() {
         <Card.Content className="space-y-3 text-sm text-slate-200">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-semibold text-slate-100">
-              一键支付预览（USDC -&gt; BrandUSD -&gt; 支付）
+              Mint+Pay Preview (USDC -&gt; BrandUSD -&gt; Pay)
             </h2>
             <span
-              className={`rounded-full px-2 py-0.5 text-xs ${
-                smokeMode
-                  ? "border border-amber-300/40 bg-amber-500/20 text-amber-100"
-                  : "border border-emerald-300/40 bg-emerald-500/20 text-emerald-100"
-              }`}
+              className={`rounded-full px-2 py-0.5 text-xs ${smokeMode
+                ? "border border-amber-300/40 bg-amber-500/20 text-amber-100"
+                : "border border-emerald-300/40 bg-emerald-500/20 text-emerald-100"
+                }`}
             >
-              {smokeMode ? "演示预览" : "真实链预览"}
+              {smokeMode ? "Demo Preview" : "Real Chain Preview"}
             </span>
           </div>
           {smokeMode && (
             <p className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-              当前为演示模式，USDC 对象列表为模拟值，仅用于流程演示，不代表真实链上对象状态。
+              Currently in Demo Mode. USDC list is simulated for flow demonstration, not real chain state.
             </p>
           )}
-          {!account && <p>连接钱包后可预览选币、铸造和支付金额。</p>}
-          {account && !invoice && <p>账单尚未加载。</p>}
+          {!account && <p>Connect wallet to preview selection, mint and pay amounts.</p>}
+          {account && !invoice && <p>Invoice not loaded.</p>}
           {mintPayPreviewError && <p className="text-red-300">{mintPayPreviewError}</p>}
           {mintPayPreview && (
             <div className="space-y-1" data-testid="pay-mint-preview">
               <p>
-                预计铸造：{mintPayPreview.mintAmount.toString()} (
+                Est. Mint: {mintPayPreview.mintAmount.toString()} (
                 {appConfig.stableLayer.brandUsdType || "BrandUSD"})
               </p>
               <p>
-                预计支付：{mintPayPreview.payAmount.toString()} (
+                Est. Pay: {mintPayPreview.payAmount.toString()} (
                 {appConfig.stableLayer.brandUsdType || "BrandUSD"})
               </p>
               <p>
-                已选 USDC 总额：{mintPayPreview.totalSelected.toString()} (
+                Selected USDC Total: {mintPayPreview.totalSelected.toString()} (
                 {appConfig.stableLayer.usdcType || "-"})
               </p>
-              <p className="break-all">USDC 对象列表：{mintPayPreview.selectedCoinIds.join(", ") || "-"}</p>
+              <p className="break-all">Selected USDC Objects: {mintPayPreview.selectedCoinIds.join(", ") || "-"}</p>
             </div>
           )}
         </Card.Content>
@@ -774,7 +773,7 @@ export default function PayInvoicePage() {
               }
               onPress={onPay}
             >
-              {invoice?.status === 1 ? "该账单已支付" : "直接支付"}
+              {invoice?.status === 1 ? "Invoice Paid" : "Direct Pay"}
             </Button>
 
             <Button
@@ -789,15 +788,15 @@ export default function PayInvoicePage() {
               }
               onPress={onPayWithUsdcMintAndPay}
             >
-              {invoice?.status === 1 ? "该账单已支付" : "USDC 一键支付（铸造+支付同一笔）"}
+              {invoice?.status === 1 ? "Invoice Paid" : "USDC One-Click Pay (Mint+Pay)"}
             </Button>
           </div>
           <p className="text-xs text-slate-400">
-            交易策略限制：默认单笔上限 {appConfig.policy.maxMintAndPayAmountU64.toString()}（u64）。超过上限需二次确认。
+            Policy Limit: Default Max {appConfig.policy.maxMintAndPayAmountU64.toString()} (u64). Secondary confirmation required if exceeded.
           </p>
 
           <TxFeedbackCard
-            label="直接支付交易"
+            label="Direct Pay Tx"
             loading={payTxLoading}
             error={payTxError}
             result={payTxResult}

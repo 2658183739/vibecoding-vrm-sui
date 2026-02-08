@@ -76,16 +76,16 @@ export const appConfig = {
 
 export function assertRequiredConfigForMerchant(): void {
   if (appConfig.contract.packageId === "0x0") {
-    throw new Error("缺少 VITE_PACKAGE_ID 配置。");
+    throw new Error("Missing VITE_PACKAGE_ID config.");
   }
   if (!appConfig.objectIds.merchantId) {
-    throw new Error("缺少 VITE_MERCHANT_ID 配置。");
+    throw new Error("Missing VITE_MERCHANT_ID config.");
   }
 }
 
 export function assertRequiredConfigForPay(): void {
   if (appConfig.contract.packageId === "0x0") {
-    throw new Error("缺少 VITE_PACKAGE_ID 配置。");
+    throw new Error("Missing VITE_PACKAGE_ID config.");
   }
 }
 
@@ -93,13 +93,13 @@ export function assertRequiredConfigForStableLayerMintPay(): void {
   assertRequiredConfigForPay();
 
   if (!appConfig.stableLayer.stableCoinType) {
-    throw new Error("缺少 VITE_STABLE_LAYER_STABLE_COIN_TYPE 配置。");
+    throw new Error("Missing VITE_STABLE_LAYER_STABLE_COIN_TYPE config.");
   }
   if (!appConfig.stableLayer.brandUsdType) {
-    throw new Error("缺少 VITE_STABLE_LAYER_BRAND_USD_TYPE 配置。");
+    throw new Error("Missing VITE_STABLE_LAYER_BRAND_USD_TYPE config.");
   }
   if (!appConfig.stableLayer.usdcType) {
-    throw new Error("缺少 VITE_STABLE_LAYER_USDC_TYPE 配置。");
+    throw new Error("Missing VITE_STABLE_LAYER_USDC_TYPE config.");
   }
 }
 
@@ -107,13 +107,13 @@ export function assertRequiredConfigForStableLayerBurn(): void {
   assertRequiredConfigForPay();
 
   if (!appConfig.stableLayer.stableCoinType) {
-    throw new Error("缺少 VITE_STABLE_LAYER_STABLE_COIN_TYPE 配置。");
+    throw new Error("Missing VITE_STABLE_LAYER_STABLE_COIN_TYPE config.");
   }
 }
 
 export function assertRequiredConfigForStableLayerCore(): void {
   if (!appConfig.stableLayer.stableCoinType) {
-    throw new Error("缺少 VITE_STABLE_LAYER_STABLE_COIN_TYPE 配置。");
+    throw new Error("Missing VITE_STABLE_LAYER_STABLE_COIN_TYPE config.");
   }
 }
 
