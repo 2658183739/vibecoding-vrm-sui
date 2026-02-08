@@ -39,7 +39,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web for GitHub Pages
-        run: pnpm --filter @vibesui/web build
+        run: pnpm --filter @vibesui/web... build
         env:
           VITE_BASE_PATH: /vibecoding-vrm-sui/
 

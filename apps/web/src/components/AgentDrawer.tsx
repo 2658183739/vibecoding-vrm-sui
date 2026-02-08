@@ -809,15 +809,24 @@ export function AgentDrawer() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[2px]">
-          <div className="absolute right-0 top-0 flex h-full w-full max-w-xl flex-col border-l border-white/10 bg-slate-950/95">
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-all duration-300">
+          <div className="absolute right-0 top-0 flex h-full w-full max-w-xl flex-col border-l border-white/10 bg-slate-950/80 shadow-2xl shadow-cyan-900/20 backdrop-blur-xl transition-all">
+            <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-4 backdrop-blur-md">
               <div>
-                <p className="text-base font-semibold text-slate-100">结账智能助手</p>
-                <p className="text-xs text-slate-400">支持项目问答、演示引导与交易动作执行</p>
+                <p className="bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-lg font-bold text-transparent">
+                  结账智能助手
+                </p>
+                <p className="text-xs text-slate-400">
+                  支持项目问答 · 演示引导 · 交易动作执行
+                </p>
               </div>
-              <Button variant="secondary" onPress={() => setOpen(false)}>
-                关闭
+              <Button
+                variant="ghost"
+                isIconOnly
+                className="rounded-full text-slate-400 hover:bg-white/10 hover:text-white"
+                onPress={() => setOpen(false)}
+              >
+                ✕
               </Button>
             </div>
 
@@ -884,13 +893,12 @@ export function AgentDrawer() {
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`whitespace-pre-line rounded-xl px-3 py-2 text-sm ${
-                        message.role === "user"
-                          ? "bg-emerald-500/15 text-emerald-100"
-                          : message.role === "assistant"
-                            ? "border border-cyan-400/20 bg-slate-800/80 text-slate-100"
-                            : "bg-sky-500/10 text-sky-100"
-                      }`}
+                      className={`whitespace-pre-line rounded-2xl px-4 py-3 text-sm shadow-sm ${message.role === "user"
+                        ? "ml-8 bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 text-emerald-100 ring-1 ring-emerald-500/30"
+                        : message.role === "assistant"
+                          ? "mr-8 bg-gradient-to-br from-slate-800/80 to-slate-900/80 text-slate-100 ring-1 ring-white/10"
+                          : "mx-4 bg-sky-500/10 text-sky-100 ring-1 ring-sky-500/20"
+                        }`}
                     >
                       {message.text}
                     </div>
@@ -954,7 +962,7 @@ export function AgentDrawer() {
                         <button
                           key={prompt}
                           type="button"
-                          className="agent-chip"
+                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 transition-all hover:scale-105 hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:text-cyan-100 active:scale-95"
                           onClick={() => onSend(prompt)}
                         >
                           {prompt}

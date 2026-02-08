@@ -10,9 +10,12 @@ import { buildMintAndPayTx as buildMintAndPayTransaction } from "./tx/buildMintA
 import { fetchInvoice, fetchProduct, getSuiClient } from "./sui";
 
 export interface WebAgentToolbox extends AgentToolbox {
+  getBalances(address: string): Promise<Record<string, string>>;
+  getInvoice(invoiceId: string): Promise<AgentInvoiceSnapshot>;
   buildMintAndPayTx(invoiceId: string): Promise<Transaction>;
   buildBurnTx(input: { amount?: string; all?: boolean }): Promise<Transaction>;
   buildClaimTx(): Promise<Transaction>;
+  getTxStatus(digest: string): Promise<AgentTxStatusSnapshot>;
 }
 
 export async function getBalances(address: string): Promise<Record<string, string>> {
