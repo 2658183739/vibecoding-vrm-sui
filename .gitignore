@@ -9,6 +9,9 @@ coverage
 .env.*
 .env.*.local
 !**/.env.example
+.local/
 tools/sui/
 packages/move/build/
 *.tsbuildinfo
+apps/web/test-results/
+apps/web/playwright-report/

@@ -10,7 +10,7 @@ set "PNPM_CMD="
 
 where corepack >nul 2>&1
 if errorlevel 1 (
-  echo [1/7] corepack not found, fallback to pnpm command
+  echo [1/6] corepack not found, fallback to pnpm
   where pnpm >nul 2>&1
   if errorlevel 1 (
     echo ERROR: Neither corepack nor pnpm is available in PATH.
@@ -18,40 +18,37 @@ if errorlevel 1 (
   )
   set "PNPM_CMD=pnpm"
 ) else (
-  echo [1/7] corepack enable
-  call corepack enable >nul 2>&1
+  echo [1/6] use corepack pnpm
+  call corepack prepare pnpm@10.5.2 --activate >nul 2>&1
   if errorlevel 1 (
-    echo NOTE: corepack enable failed. Continue with existing corepack state.
+    echo NOTE: corepack prepare failed, continue with existing corepack state.
   )
-  echo [2/7] prepare pnpm 10.5.2
-  call corepack prepare pnpm@10.5.2 --activate
-  if errorlevel 1 goto :fail
   set "PNPM_CMD=corepack pnpm"
 )
 
-echo [3/7] check pnpm version
+echo [2/6] check pnpm version
 call %PNPM_CMD% -v
 if errorlevel 1 goto :fail
 
-echo [4/7] install dependencies
+echo [3/6] install dependencies
 call %PNPM_CMD% install
 if errorlevel 1 goto :fail
 
-echo [5/7] build agent package (avoid stale dist in browser)
+echo [4/6] build agent package
 call %PNPM_CMD% --filter @vibesui/agent build
 if errorlevel 1 goto :fail
 
 if "%SETUP_ONLY%"=="1" (
-  echo [6/7] setup-only mode detected, skip browser and dev server
-  echo Setup completed in setup-only mode.
+  echo [5/6] setup-only mode, skip browser and dev server
+  echo Setup completed.
   goto :eof
 )
 
-echo [6/7] open browser
-start "" "http://localhost:5173/#/merchant"
+echo [5/6] open browser
+start "" "http://localhost:5173/#/quickstart"
 
-echo [7/7] start frontend dev server
-call %PNPM_CMD% dev
+echo [6/6] start frontend dev server
+call %PNPM_CMD% --filter @vibesui/web dev
 goto :eof
 
 :fail

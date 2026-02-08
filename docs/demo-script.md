@@ -1,92 +1,106 @@
-﻿# 3 分钟 Demo 脚本（评委视角）
+﻿# 2-3 分钟 Demo 脚本（评审视角）
 
-## 0. 开场（10 秒）
+## 演示目标
 
-一句话目标：
-> 我们展示的是一个在 Sui 上可运行的商户收款闭环，覆盖出单、支付、一键 Mint+Pay、赎回、商户 Claim、供应指标与 Agent 协助。
+在 2-3 分钟内完成一条可验证闭环：
+- 商户创建账单（Invoice）
+- 用户进入支付页
+- Local Agent 已连接并可触发 OpenClaw
+- 建议动作执行 `Mint+Pay`，钱包签名后展示 `digest + explorer + receiptId`
+- 展示安全护栏与 AI 披露材料位置
 
-## 1. 演示前准备（20 秒）
+## 演示前准备（约 15 秒）
 
 ```bash
 pnpm install
 pnpm dev
+pnpm dev:local-agent
 ```
 
-打开 `http://localhost:5173`，准备两个钱包：
-- 商户钱包（用于创建商品和账单）
-- 用户钱包（用于支付和赎回）
+打开 `http://localhost:5173/#/merchant`。  
+准备钱包插件（建议至少 1 个可签名账户，演示时可同一钱包完成）。
 
-## 2. 商户创建商品与账单（40 秒）
+---
 
-1. 进入 `/merchant`
-2. 连接商户钱包
-3. 输入商品标题和价格，点击 `Create Product`
-4. 选择商品，点击 `Create Invoice`
-5. 在账单列表中点击某个 invoice，进入 `/pay/:invoiceId`
+## 逐步脚本（约 2 分 20 秒）
 
-演示要点：
-- 账单 objectId 已生成
-- 能看到 amount、status、buyer
+### 1) 打开网站 `/merchant` 创建 invoice（约 35 秒）
 
-## 3. 普通支付（35 秒）
+1. 在 `/merchant` 点击连接钱包。
+2. 填写商品信息：`title`、`price`，点击创建商品。
+3. 选择商品，点击创建账单（Create Invoice）。
+4. 在账单列表里点击刚创建的 `invoiceId`，跳转到 `/pay/:invoiceId`。
 
-1. 切换到用户钱包
-2. 在 `/pay/:invoiceId` 点击 `Pay`
-3. 等待链上结果
+讲解词：
+> 这里完成了商户出单，账单是链上对象，后续支付会直接引用这个 invoice object。
 
-演示要点：
-- 页面显示 `digest`
-- 页面显示 `status`
-- 可点击 `Explorer` 链接
-- 若解析到回执，显示 `Receipt ObjectId`
+### 2) 打开 `/pay/:invoiceId`（约 15 秒）
 
-## 4. 一键支付（Mint+Pay）（35 秒）
+1. 展示页面上的 `invoiceId`、金额、商品信息。
+2. 指出支付区与交易反馈区在同一页面。
 
-1. 展示页面里的 Mint+Pay 预览（将铸造多少、将支付多少、选中哪些 USDC Coin）
-2. 点击 `Pay with USDC (Mint+Pay in one TX)`
+讲解词：
+> 这个页面同时支持普通支付和一键 Mint+Pay，交易完成后会显示完整链上回执信息。
 
-演示要点：
-- 单笔交易完成 `USDC -> BrandUSD -> Pay`
-- 明确提到使用了 `buildMintTx(autoTransfer:false)`
-- 结果反馈仍完整：`digest/status/explorer`
+### 3) 打开 Local Agent 面板并展示已连接（约 20 秒）
 
-## 5. 赎回（25 秒）
+1. 点击导航进入 `/agent`（Local Agent 面板）。
+2. 展示连接状态为已连接（Connected）。
+3. 读一下 Agent 地址：`http://localhost:3777`。
+4. 返回 `/pay/:invoiceId`。
 
-1. 进入 `/redeem`
-2. 展示 Banner：MVP 默认 T+1，Instant 是 roadmap
-3. 先演示 `Burn amount`，再演示 `Burn all`（二选一即可）
+讲解词：
+> Local Agent 是本地常驻服务，负责建议动作与浏览器自动化，不托管私钥。
 
-演示要点：
-- 结果区可见 `digest/status/explorer`
-- 失败时有清晰错误提示
+### 4) 点击 `Open in controlled browser`（OpenClaw）（约 15 秒）
 
-## 6. 商户 Claim + Metrics（30 秒）
+1. 在支付页的 Local Agent 快捷动作区点击 `Open current invoice in controlled browser`。
+2. 展示成功提示（或 fallback 提示）。
 
-1. 进入 `/merchant/claim`，点击 `Claim Revenue`
-2. 进入 `/merchant/metrics`，点击 `Refresh`
+讲解词：
+> 这是 OpenClaw 控制浏览器能力，且受域名白名单约束，不在白名单的 URL 会被拒绝。
 
-演示要点：
-- Claim 结果有完整交易反馈
-- Metrics 显示 `getTotalSupply` 与 `getTotalSupplyByCoinType`
+### 5) 点击建议动作 `Mint+Pay`，钱包签名，展示 digest + explorer + receiptId（约 40 秒）
 
-## 7. 合约与合规补充（30 秒）
+1. 点击 `刷新 Agent 建议动作`。
+2. 点击建议动作中的 `Mint+Pay`。
+3. 确认交易策略弹窗（展示金额、stableCoinType、invoiceId、package/module/function）。
+4. 钱包签名后等待完成。
+5. 展示结果区：
+   - `digest`
+   - `status`
+   - `Explorer` 链接
+   - `Receipt ObjectId`（若链上返回）
 
-可选终端补充：
+讲解词：
+> 这是一笔组合交易：USDC -> BrandUSD -> pay_invoice，在同一笔交易内完成，结果可直接在浏览器复核。
 
-```bash
-cd packages/move
-sui move build
-sui move test
-sui client publish --gas-budget 200000000
-```
+### 6) 展示安全护栏（约 25 秒）
 
-强调：
-- Move 版本为 2024（`edition = "2024.beta"`）
-- 使用官方 Sui SDK
-- AI 使用已披露（`ai-disclosure/`）
+依次展示三点：
 
-## 8. 收尾（10 秒）
+1. **域名白名单**
+   - 在 `/agent` 页可见并可编辑 allowlist。
+   - 说明 `/browser/open` 不在白名单会 `403`。
+2. **交易确认弹窗**
+   - Mint+Pay 前必须人工确认，超出阈值会二次确认。
+3. **审计日志位置**
+   - Local Agent 审计日志：`.local/audit.jsonl`
+   - 说明记录字段：timestamp/action/url/invoiceId/result（不含密钥）。
 
-- 项目完整开源（合约 + 前端 + Agent + 文档）
-- 可以直接复现演示流程
-- 线上版本可按文档部署并提交公开访问链接
+### 7) AI 披露目录说明（约 15 秒）
+
+打开仓库目录并指出：
+- `ai-disclosure/tools.md`：工具名、模型版本
+- `ai-disclosure/prompts/`：提示词记录（可打码敏感信息）
+
+讲解词：
+> 项目中的 AI 使用已结构化披露，便于复核开发过程与合规性。
+
+---
+
+## 演示收尾（10 秒）
+
+> 以上完成了从出单到支付再到安全与披露的完整闭环，链上交易有 digest、可跳 Explorer，且本地 Agent 与安全护栏都能现场验证。
+
+

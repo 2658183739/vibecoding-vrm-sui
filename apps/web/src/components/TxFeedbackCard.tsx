@@ -1,3 +1,4 @@
+﻿import { useState } from "react";
 import { Card } from "@heroui/react";
 import type { TxFeedback } from "../lib/sui";
 
@@ -9,18 +10,53 @@ interface Props {
 }
 
 export function TxFeedbackCard({ label, loading, error, result }: Props) {
+  const [copiedField, setCopiedField] = useState<"digest" | "receipt" | null>(null);
+
+  async function copyText(value: string, field: "digest" | "receipt"): Promise<void> {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedField(field);
+      window.setTimeout(() => setCopiedField(null), 1200);
+    } catch {
+      setCopiedField(null);
+    }
+  }
+
   return (
-    <Card variant="secondary">
+    <Card variant="secondary" className="panel-card">
       <Card.Content className="space-y-2 text-sm">
         <p className="font-semibold text-slate-200">{label}</p>
-        {loading && <p className="text-amber-300">Submitting transaction...</p>}
+        {loading && <p className="text-amber-300">交易提交中，请在钱包内确认...</p>}
         {error && <p className="text-red-300">{error}</p>}
         {result && (
           <div className="space-y-1 text-slate-200">
-            <p>Digest: {result.digest || "-"}</p>
-            <p>Status: {result.status}</p>
-            {result.receiptObjectId && <p>Receipt ObjectId: {result.receiptObjectId}</p>}
-            {result.errorMessage && <p className="text-red-300">Error: {result.errorMessage}</p>}
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="break-all">Digest：{result.digest || "-"}</p>
+              {result.digest && (
+                <button
+                  type="button"
+                  className="rounded border border-slate-500/60 px-2 py-0.5 text-xs text-slate-200 transition hover:border-emerald-400/70 hover:text-emerald-200"
+                  onClick={() => copyText(result.digest, "digest")}
+                >
+                  {copiedField === "digest" ? "已复制" : "复制"}
+                </button>
+              )}
+            </div>
+            <p>状态：{result.status}</p>
+            {result.receiptObjectId && (
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="break-all">回执对象 ID：{result.receiptObjectId}</p>
+                <button
+                  type="button"
+                  className="rounded border border-slate-500/60 px-2 py-0.5 text-xs text-slate-200 transition hover:border-emerald-400/70 hover:text-emerald-200"
+                  onClick={() => copyText(result.receiptObjectId!, "receipt")}
+                >
+                  {copiedField === "receipt" ? "已复制" : "复制"}
+                </button>
+              </div>
+            )}
+            {result.errorMessage && <p className="text-red-300">错误信息：{result.errorMessage}</p>}
             {result.explorerUrl && (
               <a
                 className="text-emerald-300 underline hover:text-emerald-200"
@@ -28,7 +64,7 @@ export function TxFeedbackCard({ label, loading, error, result }: Props) {
                 target="_blank"
                 rel="noreferrer"
               >
-                Open in Explorer
+                打开区块浏览器查看
               </a>
             )}
           </div>

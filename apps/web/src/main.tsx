@@ -8,8 +8,21 @@ import App from "./App";
 import { dAppKit } from "./lib/dappKit";
 import "./index.css";
 
-if (!("Buffer" in globalThis)) {
-  (globalThis as unknown as { Buffer?: typeof Buffer }).Buffer = Buffer;
+type PolyfillGlobal = typeof globalThis & {
+  Buffer?: typeof Buffer;
+  process?: {
+    env: Record<string, string | undefined>;
+    browser?: boolean;
+  };
+};
+
+const globalWithPolyfill = globalThis as PolyfillGlobal;
+
+if (!globalWithPolyfill.Buffer) {
+  globalWithPolyfill.Buffer = Buffer;
+}
+if (!globalWithPolyfill.process) {
+  globalWithPolyfill.process = { env: {}, browser: true };
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

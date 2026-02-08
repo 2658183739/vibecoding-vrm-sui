@@ -43,9 +43,19 @@ export interface AgentContext {
   lastDigest?: string;
 }
 
+export interface AgentMemory {
+  guideMode?: boolean;
+  lastIntent?: AgentIntent;
+  userGoals?: string[];
+  completedActions?: string[];
+  recentPaths?: string[];
+  recentDigests?: string[];
+}
+
 export interface AgentInput {
   userInput: string;
   context: AgentContext;
+  memory?: AgentMemory;
 }
 
 export interface AgentOutput {

@@ -1,4 +1,4 @@
-import { StableLayerClient } from "stable-layer-sdk";
+﻿import { StableLayerClient } from "stable-layer-sdk";
 import { Transaction } from "@mysten/sui/transactions";
 import { appConfig, assertRequiredConfigForStableLayerMintPay } from "../../config";
 import {
@@ -19,6 +19,10 @@ export interface MintAndPayTxResult {
 
 function moduleTarget(fnName: string): string {
   return `${appConfig.contract.packageId}::${appConfig.contract.moduleName}::${fnName}`;
+}
+
+function payInvoiceReturnsReceiptObject(): boolean {
+  return appConfig.contract.payInvoiceFn === "pay_invoice";
 }
 
 function createStableLayerClient(sender: string): StableLayerClient {
@@ -55,7 +59,7 @@ export async function buildMintAndPayTx(input: {
 }): Promise<MintAndPayTxResult> {
   assertRequiredConfigForStableLayerMintPay();
   if (!input.merchantId) {
-    throw new Error("Missing merchant object id for pay_invoice");
+    throw new Error("Missing merchant object id, cannot call pay_invoice.");
   }
 
   const stableLayerClient = createStableLayerClient(input.owner);
@@ -77,14 +81,23 @@ export async function buildMintAndPayTx(input: {
   });
 
   if (!mintedCoin) {
-    throw new Error("StableLayer buildMintTx returned empty minted coin");
+    throw new Error("StableLayer buildMintTx returned no minted coin object.");
   }
 
-  tx.moveCall({
-    target: moduleTarget(appConfig.contract.payInvoiceFn),
-    typeArguments: [appConfig.stableLayer.brandUsdType],
-    arguments: [tx.object(input.merchantId), tx.object(input.invoiceId), mintedCoin]
-  });
+  if (payInvoiceReturnsReceiptObject()) {
+    const receipt = tx.moveCall({
+      target: moduleTarget(appConfig.contract.payInvoiceFn),
+      typeArguments: [appConfig.stableLayer.brandUsdType],
+      arguments: [tx.object(input.merchantId), tx.object(input.invoiceId), mintedCoin]
+    });
+    tx.transferObjects([receipt], tx.pure.address(input.owner));
+  } else {
+    tx.moveCall({
+      target: moduleTarget(appConfig.contract.payInvoiceFn),
+      typeArguments: [appConfig.stableLayer.brandUsdType],
+      arguments: [tx.object(input.merchantId), tx.object(input.invoiceId), mintedCoin]
+    });
+  }
 
   return {
     tx,

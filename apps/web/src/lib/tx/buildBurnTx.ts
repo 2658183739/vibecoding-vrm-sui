@@ -1,4 +1,4 @@
-import { StableLayerClient } from "stable-layer-sdk";
+﻿import { StableLayerClient } from "stable-layer-sdk";
 import { Transaction } from "@mysten/sui/transactions";
 import { appConfig, assertRequiredConfigForStableLayerBurn } from "../../config";
 
@@ -39,7 +39,7 @@ export async function buildBurnTx(input: {
     });
 
     if (!burnCoin) {
-      throw new Error("StableLayer buildBurnTx(all:true) returned empty coin");
+      throw new Error("StableLayer buildBurnTx(all:true) returned no burn coin object.");
     }
 
     return {
@@ -50,7 +50,7 @@ export async function buildBurnTx(input: {
 
   const amount = input.amountU64;
   if (!amount || amount <= 0n) {
-    throw new Error("Burn amount must be greater than 0");
+    throw new Error("Burn amount must be greater than 0.");
   }
 
   const burnCoin = await stableLayerClient.buildBurnTx({
@@ -60,7 +60,7 @@ export async function buildBurnTx(input: {
   });
 
   if (!burnCoin) {
-    throw new Error("StableLayer buildBurnTx(amount) returned empty coin");
+    throw new Error("StableLayer buildBurnTx(amount) returned no burn coin object.");
   }
 
   return {

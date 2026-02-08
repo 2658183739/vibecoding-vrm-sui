@@ -1,4 +1,4 @@
-import type { SuiClientTypes } from "@mysten/sui/client";
+﻿import type { SuiClientTypes } from "@mysten/sui/client";
 import { SuiJsonRpcClient, type SuiObjectResponse } from "@mysten/sui/jsonRpc";
 import { Transaction, type TransactionObjectArgument } from "@mysten/sui/transactions";
 import {
@@ -42,11 +42,37 @@ export interface TxFeedback {
   receiptObjectId?: string;
 }
 
+export interface MerchantBusinessMetrics {
+  totalInvoices: number;
+  paidInvoices: number;
+  unpaidInvoices: number;
+  paidGmvU64: bigint;
+  pendingGmvU64: bigint;
+  paymentRatePercent: number;
+}
+
+export interface CheckoutEventItem {
+  id: string;
+  txDigest: string;
+  eventType: string;
+  eventName: string;
+  sender?: string;
+  timestampMs?: number;
+  parsedJson?: Record<string, unknown>;
+}
+
+export interface TxChainProof {
+  digest: string;
+  status: "success" | "failure" | "unknown";
+  checkpoint?: string;
+  timestampMs?: number;
+  eventCount: number;
+  gasUsedMIST?: string;
+  createdObjectIds: string[];
+}
+
 export async function fetchCoinBalance(owner: string, coinType: string): Promise<bigint> {
-  const response = await getSuiClient().getBalance({
-    owner,
-    coinType
-  });
+  const response = await getSuiClient().getBalance({ owner, coinType });
   return BigInt(response.totalBalance);
 }
 
@@ -175,6 +201,14 @@ function moduleTarget(fnName: string): string {
   return `${appConfig.contract.packageId}::${appConfig.contract.moduleName}::${fnName}`;
 }
 
+function createInvoiceReturnsObject(): boolean {
+  return appConfig.contract.createInvoiceFn === "create_invoice";
+}
+
+function payInvoiceReturnsReceiptObject(): boolean {
+  return appConfig.contract.payInvoiceFn === "pay_invoice";
+}
+
 async function getAllOwnedObjects(owner: string): Promise<SuiObjectResponse[]> {
   const client = getSuiClient();
   const objects: SuiObjectResponse[] = [];
@@ -254,14 +288,18 @@ export function buildCreateProductTx(input: { title: string; priceU64: bigint })
   return tx;
 }
 
-export function buildCreateInvoiceTx(productId: string): Transaction {
+export function buildCreateInvoiceTx(input: { owner: string; productId: string }): Transaction {
   assertRequiredConfigForMerchant();
 
   const tx = new Transaction();
-  tx.moveCall({
+  const createdInvoice = tx.moveCall({
     target: moduleTarget(appConfig.contract.createInvoiceFn),
-    arguments: [tx.object(appConfig.objectIds.merchantId), tx.object(productId)]
+    arguments: [tx.object(appConfig.objectIds.merchantId), tx.object(input.productId)]
   });
+
+  if (createInvoiceReturnsObject()) {
+    tx.transferObjects([createdInvoice], tx.pure.address(input.owner));
+  }
 
   return tx;
 }
@@ -276,7 +314,7 @@ interface SelectCoinInput {
 async function selectCoinForExactAmount(
   input: SelectCoinInput
 ): Promise<TransactionObjectArgument> {
-  if (input.amount <= 0n) throw new Error("Invoice amount must be > 0");
+  if (input.amount <= 0n) throw new Error("Invoice amount must be greater than 0.");
 
   const response = await getSuiClient().getCoins({
     owner: input.owner,
@@ -284,7 +322,7 @@ async function selectCoinForExactAmount(
   });
 
   if (response.data.length === 0) {
-    throw new Error(`No coin found for ${input.coinType}`);
+    throw new Error(`No available coin found for type: ${input.coinType}`);
   }
 
   const sorted = [...response.data].sort((a, b) => {
@@ -305,12 +343,12 @@ async function selectCoinForExactAmount(
 
   if (total < input.amount) {
     throw new Error(
-      `Insufficient balance: need=${input.amount.toString()}, have=${total.toString()}`
+      `Insufficient balance: required ${input.amount.toString()}, current ${total.toString()}`
     );
   }
 
   const [primary, ...rest] = selected;
-  if (!primary) throw new Error("Coin selection failed");
+  if (!primary) throw new Error("Coin selection failed. Please retry.");
 
   const primaryArg = input.tx.object(primary.coinObjectId);
 
@@ -336,7 +374,7 @@ export async function buildPayInvoiceTx(input: {
 }): Promise<Transaction> {
   assertRequiredConfigForPay();
   if (!input.merchantId) {
-    throw new Error("Missing merchant object id for pay_invoice");
+    throw new Error("Missing merchant object id, cannot call pay_invoice.");
   }
 
   const tx = new Transaction();
@@ -347,11 +385,20 @@ export async function buildPayInvoiceTx(input: {
     tx
   });
 
-  tx.moveCall({
-    target: moduleTarget(appConfig.contract.payInvoiceFn),
-    typeArguments: [input.coinType],
-    arguments: [tx.object(input.merchantId), tx.object(input.invoiceId), paymentCoin]
-  });
+  if (payInvoiceReturnsReceiptObject()) {
+    const receipt = tx.moveCall({
+      target: moduleTarget(appConfig.contract.payInvoiceFn),
+      typeArguments: [input.coinType],
+      arguments: [tx.object(input.merchantId), tx.object(input.invoiceId), paymentCoin]
+    });
+    tx.transferObjects([receipt], tx.pure.address(input.owner));
+  } else {
+    tx.moveCall({
+      target: moduleTarget(appConfig.contract.payInvoiceFn),
+      typeArguments: [input.coinType],
+      arguments: [tx.object(input.merchantId), tx.object(input.invoiceId), paymentCoin]
+    });
+  }
 
   return tx;
 }
@@ -377,6 +424,137 @@ function findCreatedReceiptObjectId(
   });
 
   const objectId = change?.objectId;
+  return typeof objectId === "string" ? objectId : undefined;
+}
+
+function getEventNameFromType(eventType: string): string {
+  const parts = eventType.split("::");
+  return parts[parts.length - 1] || eventType;
+}
+
+function normalizeStatus(raw: unknown): "success" | "failure" | "unknown" {
+  if (raw === "success") return "success";
+  if (raw === "failure") return "failure";
+  return "unknown";
+}
+
+export async function fetchMerchantBusinessMetrics(
+  owner: string
+): Promise<MerchantBusinessMetrics> {
+  const invoices = await fetchInvoices(owner);
+  const totalInvoices = invoices.length;
+  const paidInvoices = invoices.filter((item) => item.status === 1).length;
+  const unpaidInvoices = totalInvoices - paidInvoices;
+
+  let paidGmvU64 = 0n;
+  let pendingGmvU64 = 0n;
+
+  for (const invoice of invoices) {
+    if (invoice.status === 1) {
+      paidGmvU64 += invoice.amountU64;
+    } else {
+      pendingGmvU64 += invoice.amountU64;
+    }
+  }
+
+  const paymentRatePercent =
+    totalInvoices > 0 ? Math.round((paidInvoices / totalInvoices) * 10000) / 100 : 0;
+
+  return {
+    totalInvoices,
+    paidInvoices,
+    unpaidInvoices,
+    paidGmvU64,
+    pendingGmvU64,
+    paymentRatePercent
+  };
+}
+
+export async function fetchLatestCheckoutEvents(limit = 20): Promise<CheckoutEventItem[]> {
+  if (appConfig.contract.packageId === "0x0") return [];
+
+  const response = await getSuiClient().queryEvents({
+    query: {
+      MoveEventModule: {
+        package: appConfig.contract.packageId,
+        module: appConfig.contract.moduleName
+      }
+    },
+    order: "descending",
+    limit
+  });
+
+  return response.data.map((item) => {
+    const eventType = item.type || "";
+    return {
+      id: `${item.id.txDigest}-${item.id.eventSeq}`,
+      txDigest: item.id.txDigest,
+      eventType,
+      eventName: getEventNameFromType(eventType),
+      sender: item.sender || undefined,
+      timestampMs: item.timestampMs ? Number(item.timestampMs) : undefined,
+      parsedJson:
+        item.parsedJson && typeof item.parsedJson === "object"
+          ? (item.parsedJson as Record<string, unknown>)
+          : undefined
+    };
+  });
+}
+
+export async function fetchTxChainProof(digest: string): Promise<TxChainProof> {
+  const details = await getSuiClient().getTransactionBlock({
+    digest,
+    options: {
+      showEffects: true,
+      showEvents: true,
+      showObjectChanges: true
+    }
+  });
+
+  const effects = details.effects;
+  const gas = effects?.gasUsed;
+  const gasUsedMIST = gas
+    ? (BigInt(gas.computationCost) + BigInt(gas.storageCost) - BigInt(gas.storageRebate)).toString()
+    : undefined;
+  const createdObjectIds = (details.objectChanges || [])
+    .filter((item) => item.type === "created")
+    .map((item) => item.objectId)
+    .filter((item): item is string => typeof item === "string");
+
+  return {
+    digest,
+    status: normalizeStatus(effects?.status.status),
+    checkpoint: details.checkpoint || undefined,
+    timestampMs: details.timestampMs ? Number(details.timestampMs) : undefined,
+    eventCount: Array.isArray(details.events) ? details.events.length : 0,
+    gasUsedMIST,
+    createdObjectIds
+  };
+}
+
+export async function findCreatedObjectIdByStructName(
+  digest: string,
+  structName: string
+): Promise<string | undefined> {
+  if (!digest || !structName) return undefined;
+
+  const details = await getSuiClient().getTransactionBlock({
+    digest,
+    options: { showObjectChanges: true }
+  });
+
+  const expectedSuffix = typeSuffix(structName);
+  const change = (details.objectChanges || []).find((item) => {
+    return item.type === "created" && typeof item.objectType === "string"
+      ? item.objectType.endsWith(expectedSuffix)
+      : false;
+  });
+
+  const objectId =
+    change && typeof change === "object" && "objectId" in change
+      ? (change as { objectId?: unknown }).objectId
+      : undefined;
+
   return typeof objectId === "string" ? objectId : undefined;
 }
 

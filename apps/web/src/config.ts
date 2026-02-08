@@ -1,7 +1,17 @@
-import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
+﻿import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 
 export type SuiNetwork = "mainnet" | "testnet" | "devnet" | "localnet";
 export type StableLayerNetwork = "mainnet" | "testnet";
+
+function asPositiveBigInt(input: string | undefined, fallback: bigint): bigint {
+  if (!input) return fallback;
+  try {
+    const parsed = BigInt(input);
+    return parsed > 0n ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 function asNetwork(input?: string): SuiNetwork {
   if (input === "mainnet" || input === "testnet" || input === "devnet" || input === "localnet") {
@@ -38,8 +48,8 @@ export const appConfig = {
     invoiceTypeName: import.meta.env.VITE_INVOICE_TYPE_NAME || "Invoice",
     receiptTypeName: import.meta.env.VITE_RECEIPT_TYPE_NAME || "Receipt",
     createProductFn: import.meta.env.VITE_CREATE_PRODUCT_FN || "create_product",
-    createInvoiceFn: import.meta.env.VITE_CREATE_INVOICE_FN || "create_invoice",
-    payInvoiceFn: import.meta.env.VITE_PAY_INVOICE_FN || "pay_invoice",
+    createInvoiceFn: import.meta.env.VITE_CREATE_INVOICE_FN || "create_invoice_and_transfer",
+    payInvoiceFn: import.meta.env.VITE_PAY_INVOICE_FN || "pay_invoice_and_transfer",
     payCoinType: import.meta.env.VITE_PAY_COIN_TYPE || "0x2::sui::SUI"
   },
   stableLayer: {
@@ -50,21 +60,32 @@ export const appConfig = {
   },
   objectIds: {
     merchantId: import.meta.env.VITE_MERCHANT_ID || ""
+  },
+  agent: {
+    endpoint: import.meta.env.VITE_AGENT_ENDPOINT || "",
+    model: import.meta.env.VITE_AGENT_MODEL || "qwen3-max",
+    enableLlmMode: import.meta.env.VITE_AGENT_LLM_MODE === "1"
+  },
+  policy: {
+    maxMintAndPayAmountU64: asPositiveBigInt(
+      import.meta.env.VITE_POLICY_MAX_MINT_AND_PAY_AMOUNT_U64,
+      200n
+    )
   }
 } as const;
 
 export function assertRequiredConfigForMerchant(): void {
   if (appConfig.contract.packageId === "0x0") {
-    throw new Error("Missing VITE_PACKAGE_ID in .env");
+    throw new Error("缺少 VITE_PACKAGE_ID 配置。");
   }
   if (!appConfig.objectIds.merchantId) {
-    throw new Error("Missing VITE_MERCHANT_ID in .env");
+    throw new Error("缺少 VITE_MERCHANT_ID 配置。");
   }
 }
 
 export function assertRequiredConfigForPay(): void {
   if (appConfig.contract.packageId === "0x0") {
-    throw new Error("Missing VITE_PACKAGE_ID in .env");
+    throw new Error("缺少 VITE_PACKAGE_ID 配置。");
   }
 }
 
@@ -72,13 +93,13 @@ export function assertRequiredConfigForStableLayerMintPay(): void {
   assertRequiredConfigForPay();
 
   if (!appConfig.stableLayer.stableCoinType) {
-    throw new Error("Missing VITE_STABLE_LAYER_STABLE_COIN_TYPE in .env");
+    throw new Error("缺少 VITE_STABLE_LAYER_STABLE_COIN_TYPE 配置。");
   }
   if (!appConfig.stableLayer.brandUsdType) {
-    throw new Error("Missing VITE_STABLE_LAYER_BRAND_USD_TYPE in .env");
+    throw new Error("缺少 VITE_STABLE_LAYER_BRAND_USD_TYPE 配置。");
   }
   if (!appConfig.stableLayer.usdcType) {
-    throw new Error("Missing VITE_STABLE_LAYER_USDC_TYPE in .env");
+    throw new Error("缺少 VITE_STABLE_LAYER_USDC_TYPE 配置。");
   }
 }
 
@@ -86,13 +107,13 @@ export function assertRequiredConfigForStableLayerBurn(): void {
   assertRequiredConfigForPay();
 
   if (!appConfig.stableLayer.stableCoinType) {
-    throw new Error("Missing VITE_STABLE_LAYER_STABLE_COIN_TYPE in .env");
+    throw new Error("缺少 VITE_STABLE_LAYER_STABLE_COIN_TYPE 配置。");
   }
 }
 
 export function assertRequiredConfigForStableLayerCore(): void {
   if (!appConfig.stableLayer.stableCoinType) {
-    throw new Error("Missing VITE_STABLE_LAYER_STABLE_COIN_TYPE in .env");
+    throw new Error("缺少 VITE_STABLE_LAYER_STABLE_COIN_TYPE 配置。");
   }
 }
 

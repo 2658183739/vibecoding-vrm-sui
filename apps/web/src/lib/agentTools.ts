@@ -1,4 +1,4 @@
-import type { AgentInvoiceSnapshot, AgentToolbox, AgentTxStatusSnapshot } from "@vibesui/agent";
+﻿import type { AgentInvoiceSnapshot, AgentToolbox, AgentTxStatusSnapshot } from "@vibesui/agent";
 import type { Transaction } from "@mysten/sui/transactions";
 import { appConfig, toExplorerTxUrl } from "../config";
 import {
@@ -77,7 +77,7 @@ async function buildBurnTx(
   }
 
   if (!input.amount) {
-    throw new Error("Missing burn amount");
+    throw new Error("Missing burn amount.");
   }
 
   const amount = BigInt(input.amount);

@@ -5,6 +5,7 @@ export { RuleEngine, CheckoutAgentEngine };
 export type {
   AgentAction,
   AgentContext,
+  AgentMemory,
   AgentEvent,
   AgentInput,
   AgentIntent,
@@ -21,6 +22,25 @@ export type {
 export { createSuiClient } from "./sui-client";
 export type { StableLayerClient } from "./stable-layer";
 export { InMemoryStableLayerClient } from "./stable-layer";
+export {
+  InMemoryLocalAutomationRunner,
+  LocalAutomationGuard,
+  LocalAutomationPlanner,
+  localAutomationToMarkdown
+} from "./local-automation";
+export type {
+  LocalAutomationContext,
+  LocalAutomationGuardResult,
+  LocalAutomationIntent,
+  LocalAutomationPlan,
+  LocalAutomationRequest,
+  LocalAutomationRunRecord,
+  LocalAutomationRunResult,
+  LocalAutomationStep,
+  LocalRiskLevel,
+  LocalStepKind
+} from "./local-automation";
+export type { LocalAgentAction, LocalAgentActionPayload, LocalAgentActionType } from "./actionProtocol";
 
 const isNodeRuntime =
   typeof process !== "undefined" &&

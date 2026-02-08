@@ -1,4 +1,4 @@
-import type { CoinStruct } from "@mysten/sui/jsonRpc";
+﻿import type { CoinStruct } from "@mysten/sui/jsonRpc";
 import { type Transaction, type TransactionObjectArgument } from "@mysten/sui/transactions";
 import { getSuiClient } from "../sui";
 
@@ -19,7 +19,7 @@ function pickCoinsByAmount(
   const sorted = [...coins].sort((a, b) => {
     const aVal = BigInt(a.balance);
     const bVal = BigInt(b.balance);
-    if (aVal === bVal) return 0;
+    if (aVal === bVal) return a.coinObjectId.localeCompare(b.coinObjectId);
     return aVal > bVal ? -1 : 1;
   });
 
@@ -41,7 +41,7 @@ export async function previewUsdcSelection(input: {
   amount: bigint;
 }): Promise<UsdcSelectionPreview> {
   if (input.amount <= 0n) {
-    throw new Error("Invoice amount must be > 0");
+    throw new Error("Invoice amount must be greater than 0.");
   }
 
   const page = await getSuiClient().getCoins({
@@ -50,14 +50,14 @@ export async function previewUsdcSelection(input: {
   });
 
   if (page.data.length === 0) {
-    throw new Error(`No USDC coin found in wallet (type: ${input.usdcType})`);
+    throw new Error(`No USDC found in wallet (type: ${input.usdcType}).`);
   }
 
   const { selectedCoins, totalSelected } = pickCoinsByAmount(page.data, input.amount);
 
   if (totalSelected < input.amount) {
     throw new Error(
-      `Insufficient USDC balance: need=${input.amount.toString()}, have=${totalSelected.toString()}`
+      `USDC balance is insufficient: required ${input.amount.toString()}, current ${totalSelected.toString()}`
     );
   }
 
@@ -80,20 +80,20 @@ export async function selectUsdcCoinForTx(input: {
   });
 
   if (page.data.length === 0) {
-    throw new Error(`No USDC coin found in wallet (type: ${input.usdcType})`);
+    throw new Error(`No USDC found in wallet (type: ${input.usdcType}).`);
   }
 
   const { selectedCoins, totalSelected } = pickCoinsByAmount(page.data, input.amount);
 
   if (totalSelected < input.amount) {
     throw new Error(
-      `Insufficient USDC balance: need=${input.amount.toString()}, have=${totalSelected.toString()}`
+      `USDC balance is insufficient: required ${input.amount.toString()}, current ${totalSelected.toString()}`
     );
   }
 
   const [primary, ...rest] = selectedCoins;
   if (!primary) {
-    throw new Error("Unable to select USDC coin for payment");
+    throw new Error("Cannot select a usable USDC coin.");
   }
 
   const primaryArg = input.tx.object(primary.coinObjectId);

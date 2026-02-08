@@ -1,11 +1,7 @@
 module stableflow_checkout::checkout {
-    use std::option;
-    use sui::coin::{Self, Coin};
+    use sui::coin;
+    use sui::coin::Coin;
     use sui::event;
-    use sui::object::{Self, ID, UID};
-    use sui::sui::SUI;
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
 
     const E_NOT_MERCHANT_OWNER: u64 = 1;
     const E_PRODUCT_INACTIVE: u64 = 2;
@@ -18,24 +14,24 @@ module stableflow_checkout::checkout {
     const STATUS_PAID: u8 = 1;
 
     public struct Merchant has key, store {
-        id: UID,
+        id: object::UID,
         owner: address,
         name: vector<u8>,
         treasury: address,
     }
 
     public struct Product has key, store {
-        id: UID,
-        merchant_id: ID,
+        id: object::UID,
+        merchant_id: object::ID,
         title: vector<u8>,
         price_u64: u64,
         active: bool,
     }
 
     public struct Invoice has key, store {
-        id: UID,
-        product_id: ID,
-        merchant_id: ID,
+        id: object::UID,
+        product_id: object::ID,
+        merchant_id: object::ID,
         amount_u64: u64,
         status: u8,
         buyer: option::Option<address>,
@@ -43,32 +39,32 @@ module stableflow_checkout::checkout {
     }
 
     public struct Receipt has key, store {
-        id: UID,
-        invoice_id: ID,
+        id: object::UID,
+        invoice_id: object::ID,
         buyer: address,
         paid_amount_u64: u64,
         paid_at_ms: u64,
     }
 
     public struct InvoiceCreated has copy, drop {
-        invoice_id: ID,
-        product_id: ID,
-        merchant_id: ID,
+        invoice_id: object::ID,
+        product_id: object::ID,
+        merchant_id: object::ID,
         amount_u64: u64,
         created_at_ms: u64,
     }
 
     public struct InvoicePaid has copy, drop {
-        invoice_id: ID,
-        merchant_id: ID,
+        invoice_id: object::ID,
+        merchant_id: object::ID,
         buyer: address,
         paid_amount_u64: u64,
         paid_at_ms: u64,
     }
 
     public struct ReceiptMinted has copy, drop {
-        receipt_id: ID,
-        invoice_id: ID,
+        receipt_id: object::ID,
+        invoice_id: object::ID,
         buyer: address,
         paid_amount_u64: u64,
         paid_at_ms: u64,
@@ -82,17 +78,19 @@ module stableflow_checkout::checkout {
         STATUS_PAID
     }
 
-    public entry fun create_merchant(name: vector<u8>, treasury: address, ctx: &mut TxContext) {
+    #[allow(lint(self_transfer))]
+    public fun create_merchant(name: vector<u8>, treasury: address, ctx: &mut tx_context::TxContext) {
         let sender = tx_context::sender(ctx);
         let merchant = new_merchant(sender, name, treasury, ctx);
         transfer::public_transfer(merchant, sender);
     }
 
-    public entry fun create_product(
+    #[allow(lint(self_transfer))]
+    public fun create_product(
         merchant: &Merchant,
         title: vector<u8>,
         price_u64: u64,
-        ctx: &mut TxContext,
+        ctx: &mut tx_context::TxContext,
     ) {
         let sender = tx_context::sender(ctx);
         assert_merchant_owner(merchant, sender);
@@ -101,26 +99,42 @@ module stableflow_checkout::checkout {
         transfer::public_transfer(product, sender);
     }
 
-    public fun create_invoice(merchant: &Merchant, product: &Product, ctx: &mut TxContext): Invoice {
+    public fun create_invoice(
+        merchant: &Merchant,
+        product: &Product,
+        ctx: &mut tx_context::TxContext,
+    ): Invoice {
         let sender = tx_context::sender(ctx);
         assert_merchant_owner(merchant, sender);
         create_invoice_impl(merchant, product, ctx)
+    }
+
+    #[allow(lint(self_transfer))]
+    public fun create_invoice_and_transfer(
+        merchant: &Merchant,
+        product: &Product,
+        ctx: &mut tx_context::TxContext,
+    ) {
+        let sender = tx_context::sender(ctx);
+        let invoice = create_invoice(merchant, product, ctx);
+        transfer::public_transfer(invoice, sender);
     }
 
     public fun pay_invoice<T>(
         merchant: &Merchant,
         invoice: &mut Invoice,
         payment: Coin<T>,
-        ctx: &mut TxContext,
+        ctx: &mut tx_context::TxContext,
     ): Receipt {
         pay_invoice_impl(merchant, invoice, payment, ctx)
     }
 
-    public entry fun pay_invoice_and_transfer<T>(
+    #[allow(lint(self_transfer))]
+    public fun pay_invoice_and_transfer<T>(
         merchant: &Merchant,
         invoice: &mut Invoice,
         payment: Coin<T>,
-        ctx: &mut TxContext,
+        ctx: &mut tx_context::TxContext,
     ) {
         let buyer = tx_context::sender(ctx);
         let receipt = pay_invoice_impl(merchant, invoice, payment, ctx);
@@ -131,7 +145,7 @@ module stableflow_checkout::checkout {
         merchant: &Merchant,
         invoice: &mut Invoice,
         payment: Coin<T>,
-        ctx: &mut TxContext,
+        ctx: &mut tx_context::TxContext,
     ): Receipt {
         assert!(invoice.status == STATUS_UNPAID, E_INVOICE_ALREADY_PAID);
         assert!(invoice.merchant_id == object::id(merchant), E_INVOICE_MERCHANT_MISMATCH);
@@ -173,7 +187,11 @@ module stableflow_checkout::checkout {
         receipt
     }
 
-    fun create_invoice_impl(merchant: &Merchant, product: &Product, ctx: &mut TxContext): Invoice {
+    fun create_invoice_impl(
+        merchant: &Merchant,
+        product: &Product,
+        ctx: &mut tx_context::TxContext,
+    ): Invoice {
         assert!(product.active, E_PRODUCT_INACTIVE);
         assert!(product.merchant_id == object::id(merchant), E_PRODUCT_MERCHANT_MISMATCH);
 
@@ -198,7 +216,12 @@ module stableflow_checkout::checkout {
         invoice
     }
 
-    fun new_merchant(owner: address, name: vector<u8>, treasury: address, ctx: &mut TxContext): Merchant {
+    fun new_merchant(
+        owner: address,
+        name: vector<u8>,
+        treasury: address,
+        ctx: &mut tx_context::TxContext,
+    ): Merchant {
         Merchant {
             id: object::new(ctx),
             owner,
@@ -208,11 +231,11 @@ module stableflow_checkout::checkout {
     }
 
     fun new_product(
-        merchant_id: ID,
+        merchant_id: object::ID,
         title: vector<u8>,
         price_u64: u64,
         active: bool,
-        ctx: &mut TxContext,
+        ctx: &mut tx_context::TxContext,
     ): Product {
         Product {
             id: object::new(ctx),
@@ -254,8 +277,8 @@ module stableflow_checkout::checkout {
         let product = new_product(object::id(&merchant), b"ZeroPlan", 0, true, &mut ctx);
         let mut invoice = create_invoice_impl(&merchant, &product, &mut ctx);
 
-        let zero_payment = coin::zero<SUI>(&mut ctx);
-        let receipt = pay_invoice_impl<SUI>(&merchant, &mut invoice, zero_payment, &mut ctx);
+        let zero_payment = coin::zero<sui::sui::SUI>(&mut ctx);
+        let receipt = pay_invoice_impl<sui::sui::SUI>(&merchant, &mut invoice, zero_payment, &mut ctx);
 
         assert!(invoice.status == STATUS_PAID, 200);
         assert!(option::is_some(&invoice.buyer), 201);

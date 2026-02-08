@@ -8,6 +8,7 @@
 - 识别意图（PAY / REDEEM / CLAIM / STATUS / HELP）
 - 输出步骤列表与建议动作
 - 可选接入 LLM 增强模式（默认关闭）
+- 提供本地自治编排能力（Local Automation Planner / Guard / Runner）
 
 ## 开发命令
 
@@ -22,3 +23,4 @@ pnpm --filter @vibesui/agent test
 - 默认规则优先，保证可控性与可解释性
 - 交易执行权限始终由前端钱包签名控制
 - 结果结构化输出，方便 UI 直接渲染
+- 本地自动化先“生成计划 + 风险守卫”，再执行
