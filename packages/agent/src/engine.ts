@@ -39,6 +39,8 @@ const PAY_KEYWORDS = [
   "checkout",
   "payment",
   "mint",
+  "buy",
+  "purchase",
   "支付",
   "账单",
   "付款",
@@ -50,24 +52,33 @@ const REDEEM_KEYWORDS = [
   "burn",
   "withdraw",
   "cashout",
+  "sell",
   "赎回",
   "销毁",
   "提现",
   "一键赎回"
 ];
-const CLAIM_KEYWORDS = ["claim", "revenue", "reward", "collect", "领取", "收益", "分润", "奖励"];
+const CLAIM_KEYWORDS = ["claim", "revenue", "reward", "collect", "harvest", "领取", "收益", "分润", "奖励"];
 const STATUS_KEYWORDS = [
   "status",
   "digest",
   "tx",
   "transaction",
+  "check",
   "progress",
+  "verify",
   "状态",
   "进度",
   "查询",
   "交易"
 ];
 const GUIDE_KEYWORDS = [
+  "feature",
+  "features",
+  "capabilities",
+  "help",
+  "guide",
+  "what can you do",
   "功能",
   "能做什么",
   "怎么用",
@@ -80,14 +91,15 @@ const GUIDE_KEYWORDS = [
   "演示",
   "介绍"
 ];
-const NEXT_STEP_KEYWORDS = ["下一步", "继续", "继续演示", "next step", "what next"];
+const NEXT_STEP_KEYWORDS = ["下一步", "继续", "继续演示", "next step", "what next", "continue"];
 const PLAYBOOK_KEYWORDS = [
   "一键连续执行",
   "自动串行",
   "全流程剧本",
   "一键剧本",
   "playbook",
-  "full flow"
+  "full flow",
+  "auto run"
 ];
 const DEMO_KEYWORDS = [
   "开始演示",
@@ -96,12 +108,17 @@ const DEMO_KEYWORDS = [
   "路演",
   "评委验证",
   "demo flow",
-  "run demo"
+  "run demo",
+  "start demo",
+  "start full demo",
+  "full demo"
 ];
-const BALANCE_KEYWORDS = ["余额", "资产", "balance", "coins", "coin", "持仓"];
+const BALANCE_KEYWORDS = ["余额", "资产", "balance", "coins", "coin", "持仓", "wallet"];
 const CONFIG_KEYWORDS = [
   "配置",
+  "config",
   "env",
+  "set key",
   "环境变量",
   "百炼",
   "dashscope",
@@ -109,7 +126,7 @@ const CONFIG_KEYWORDS = [
   "agent key",
   "qwen"
 ];
-const DEPLOY_KEYWORDS = ["部署", "上线", "deploy", "github pages", "发布", "网址"];
+const DEPLOY_KEYWORDS = ["部署", "上线", "deploy", "github pages", "发布", "网址", "url", "link"];
 
 function normalizeText(value: string): string {
   return value.toLowerCase().trim();
@@ -282,7 +299,7 @@ export class CheckoutAgentEngine {
     if (isGuideQuery(text) || isConfigQuery(text) || isDeployQuery(text)) {
       return this.runGuideIntent(input);
     }
-    if (input.memory?.guideMode && isNextStepQuery(text)) return this.runCoachNextIntent(input);
+    if (isNextStepQuery(text)) return this.runCoachNextIntent(input);
 
     // If no specific keyword rule matched, use the detected intent (from LLM or Fallback)
     const intent = detectedIntent || detectIntent(input);
