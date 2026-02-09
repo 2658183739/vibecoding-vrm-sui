@@ -1,6 +1,8 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Card, Input } from "@heroui/react";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SafeInput: any = Input;
 import { type Transaction } from "@mysten/sui/transactions";
 import { appConfig, assertRequiredConfigForMerchant } from "../config";
 import { TxFeedbackCard } from "../components/TxFeedbackCard";
@@ -312,24 +314,22 @@ export default function MerchantPage() {
               Create Product
             </h2>
             <div className="space-y-4">
-              {/* @ts-ignore */}
-              <Input
+              <SafeInput
                 label="Product Title"
                 placeholder="e.g., Cyberpunk Jacket"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e: any) => setTitle(e.target.value)}
                 classNames={{
                   input: "bg-transparent text-white",
                   inputWrapper: "bg-black/20 border-white/10 hover:border-violet-500/50 focus-within:!border-violet-500 transition-colors"
                 }}
               />
-              {/* @ts-ignore */}
-              <Input
+              <SafeInput
                 label="Price (USD)"
                 placeholder="e.g., 50"
                 type="number"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e: any) => setPrice(e.target.value)}
                 classNames={{
                   input: "bg-transparent text-white",
                   inputWrapper: "bg-black/20 border-white/10 hover:border-violet-500/50 focus-within:!border-violet-500 transition-colors"

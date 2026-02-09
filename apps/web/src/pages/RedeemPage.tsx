@@ -1,5 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Card, Input } from "@heroui/react";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SafeInput: any = Input;
 import { appConfig, assertRequiredConfigForStableLayerBurn } from "../config";
 import { RecentTxHistoryCard } from "../components/RecentTxHistoryCard";
 import { RedemptionModeBanner } from "../components/RedemptionModeBanner";
@@ -243,13 +245,12 @@ export default function RedeemPage() {
             </div>
 
             <div className="bg-black/20 rounded-xl p-4 mb-6 border border-white/5">
-              {/* @ts-ignore */}
-              <Input
+              <SafeInput
                 label="Amount to Burn"
                 placeholder="0.00"
                 labelPlacement="outside"
                 value={burnAmountInput}
-                onChange={(e) => setBurnAmountInput(e.target.value)}
+                onChange={(e: any) => setBurnAmountInput(e.target.value)}
                 endContent={
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-500">BrandUSD</span>
