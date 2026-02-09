@@ -167,7 +167,6 @@ export default function MerchantClaimPage() {
               className="w-full h-12 text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-900/20"
               isDisabled={!account || txLoading || !!claimConfigError}
               onPress={onClaim}
-              isLoading={txLoading}
             >
               {txLoading ? "Processing..." : "Claim Rewards Now"}
             </Button>

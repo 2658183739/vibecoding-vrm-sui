@@ -243,6 +243,7 @@ export default function RedeemPage() {
             </div>
 
             <div className="bg-black/20 rounded-xl p-4 mb-6 border border-white/5">
+              {/* @ts-ignore */}
               <Input
                 label="Amount to Burn"
                 placeholder="0.00"
@@ -275,7 +276,6 @@ export default function RedeemPage() {
                 className="w-full h-12 text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-900/20"
                 isDisabled={!account || txLoading || !parsedAmount || !!burnConfigError}
                 onPress={() => submitBurn("amount")}
-                isLoading={txLoading}
               >
                 {txLoading ? "Processing..." : "Confirm Burn"}
               </Button>

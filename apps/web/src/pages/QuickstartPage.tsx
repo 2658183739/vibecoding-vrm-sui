@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Card } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { RealChainHealthCard } from "../components/RealChainHealthCard";
 import { loadQuickstartProgress } from "../lib/demoProgress";
 import { isSmokeMode, setSmokeMode } from "../lib/smokeMode";
