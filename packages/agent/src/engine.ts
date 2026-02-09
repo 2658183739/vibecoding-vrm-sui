@@ -254,12 +254,28 @@ export class CheckoutAgentEngine {
   constructor(private readonly llmEnhancer?: AgentLlmEnhancer) { }
 
   async run(input: AgentInput, tools?: Partial<AgentToolbox>): Promise<AgentOutput> {
+    // 1. Try to get Intent from LLM Enhancer (if enabled)
+    let detectedIntent: AgentIntent | null = null;
+    let llmReasoning = "";
+
     if (this.llmEnhancer?.enabled) {
-      const llmOutput = await this.llmEnhancer.infer(input);
-      if (llmOutput) return llmOutput;
+      const llmResult = await this.llmEnhancer.infer(input);
+      if (llmResult) {
+        // Check if the enhancer returned a full Output or just Intent-like structure
+        // For this Hackathon, we assume our HttpLlmEnhancer (to be updated) returns 
+        // a special structure or we cast it. 
+        // Actually, let's keep it simple: reliable implementation.
+        if (llmResult.intent) {
+          detectedIntent = llmResult.intent;
+          // If LLM returns full steps/actions (unlikely from LocalAgent), we could use them.
+          // But here we just want the Intent.
+        }
+      }
     }
 
     const text = normalizeText(input.userInput);
+
+    // Normal Rule checks
     if (isPlaybookQuery(text)) return this.runPlaybookIntent();
     if (isDemoQuery(text)) return this.runDemoIntent(input);
     if (isBalanceQuery(text)) return this.runBalanceIntent(input, tools);
@@ -268,7 +284,9 @@ export class CheckoutAgentEngine {
     }
     if (input.memory?.guideMode && isNextStepQuery(text)) return this.runCoachNextIntent(input);
 
-    const intent = detectIntent(input);
+    // If no specific keyword rule matched, use the detected intent (from LLM or Fallback)
+    const intent = detectedIntent || detectIntent(input);
+
     if (intent === "PAY") return this.runPayIntent(input, tools);
     if (intent === "REDEEM") return this.runRedeemIntent(input, tools);
     if (intent === "CLAIM") return this.runClaimIntent(input);

@@ -126,58 +126,89 @@ export default function MerchantClaimPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
-      <Card variant="secondary" className="panel-card shadow-[0_20px_60px_rgba(5,12,22,0.45)]">
-        <Card.Content className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-100">Merchant Claim</h1>
-            <p className="text-sm text-slate-300">
-              Trigger stable-layer claim logic to send claimable rewards to the current wallet.
-            </p>
-            <p className="text-xs text-slate-400">
-              Stablecoin Type: {appConfig.stableLayer.stableCoinType || "Not Configured"}
-            </p>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <span className="text-2xl">💰</span>
           </div>
-          <ConnectWalletButton />
-        </Card.Content>
-      </Card>
+          <div>
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 text-glow">
+              Merchant Claim
+            </h1>
+            <p className="text-slate-400 text-sm">Withdraw your earnings from the protocol.</p>
+          </div>
+        </div>
+        <ConnectWalletButton />
+      </div>
 
-      {claimConfigError && !smokeMode && (
-        <Card variant="secondary" className="panel-card border-red-400/40">
-          <Card.Content className="text-sm text-red-300">
-            Claim unavailable: {claimConfigError}
-          </Card.Content>
-        </Card>
-      )}
+      {/* Main Content Grid */}
+      <div className="grid md:grid-cols-2 gap-8 relative z-10">
+        {/* Left Panel: Action */}
+        <div className="space-y-6">
+          <div className="panel-card p-6 border-t-4 border-t-emerald-500">
+            <h2 className="text-lg font-bold text-white mb-4">Claimable Balance</h2>
 
-      <Card variant="secondary" className="panel-card">
-        <Card.Content className="space-y-4">
-          <Button
-            data-testid="claim-submit-btn"
-            variant="primary"
-            isDisabled={!account || txLoading || !!claimConfigError}
-            onPress={onClaim}
-          >
-            Claim Rewards
-          </Button>
-          <TxFeedbackCard label="Claim Tx" loading={txLoading} error={txError} result={txResult} />
-        </Card.Content>
-      </Card>
+            <div className="bg-emerald-900/10 rounded-xl p-6 border border-emerald-500/20 mb-6 text-center">
+              <p className="text-slate-400 text-sm uppercase tracking-widest mb-2">Stablecoin Type</p>
+              <p className="font-mono text-xs text-emerald-400 bg-black/30 px-2 py-1 rounded inline-block mb-4">
+                {appConfig.stableLayer.stableCoinType || "Not Configured"}
+              </p>
 
-      {txError && failureHints.length > 0 && (
-        <Card variant="secondary" className="panel-card border-amber-400/30">
-          <Card.Content className="space-y-2 text-sm text-amber-200">
-            <p className="font-semibold">Possible Reasons</p>
-            <ul className="list-disc space-y-1 pl-5">
-              {failureHints.map((hint) => (
-                <li key={hint}>{hint}</li>
-              ))}
-            </ul>
-          </Card.Content>
-        </Card>
-      )}
+              <div className="py-4">
+                <span className="text-5xl font-bold text-white">---</span>
+                <span className="text-xl text-slate-500 ml-2">USDC</span>
+              </div>
+              <p className="text-xs text-slate-500 italic">Balance fetching not yet implemented in demo UI</p>
+            </div>
 
-      <RecentTxHistoryCard title="Recent Local Tx (Demo)" refreshKey={historyRefreshKey} />
+            <Button
+              className="w-full h-12 text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-900/20"
+              isDisabled={!account || txLoading || !!claimConfigError}
+              onPress={onClaim}
+              isLoading={txLoading}
+            >
+              {txLoading ? "Processing..." : "Claim Rewards Now"}
+            </Button>
+
+            {claimConfigError && !smokeMode && (
+              <div className="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-xs text-red-300">
+                ⚠️ Config Error: {claimConfigError}
+              </div>
+            )}
+          </div>
+
+          <TxFeedbackCard label="Claim Transaction" loading={txLoading} error={txError} result={txResult} />
+        </div>
+
+        {/* Right Panel: Hints & History */}
+        <div className="space-y-6">
+          {txError && failureHints.length > 0 && (
+            <div className="panel-card p-6 border-red-500/30 bg-red-900/5 animate-fade-in">
+              <h3 className="text-red-400 font-bold mb-3 flex items-center gap-2">
+                <span>⚠️</span> Troubleshooting
+              </h3>
+              <ul className="space-y-2">
+                {failureHints.map((hint, i) => (
+                  <li key={i} className="flex gap-2 text-sm text-red-200/80">
+                    <span className="text-red-500">•</span>
+                    {hint}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="panel-card p-6 min-h-[300px]">
+            <h3 className="text-lg font-bold text-white mb-4">Recent Claims</h3>
+            <RecentTxHistoryCard title="" refreshKey={historyRefreshKey} />
+          </div>
+        </div>
+      </div>
+
+      {/* Background Decor */}
+      <div className="fixed top-[20%] right-[10%] w-[500px] h-[500px] bg-emerald-600/5 rounded-full blur-3xl pointer-events-none -z-10" />
     </div>
   );
 }

@@ -197,6 +197,17 @@ const server = createServer(async (req, res) => {
   const pathname = url.pathname;
 
   try {
+    if (method === "GET" && pathname === "/") {
+      writeJson(res, 200, {
+        ok: true,
+        service: "VibeSui Local Agent",
+        version,
+        status: "running",
+        docs: "https://github.com/2658183739/vibecoding-vrm-sui"
+      });
+      return;
+    }
+
     if (method === "GET" && pathname === "/health") {
       const payload: HealthResponse = {
         ok: true,
@@ -239,7 +250,13 @@ const server = createServer(async (req, res) => {
       const input: AgentParseRequest = { text, context };
       const ruleResult = parseWithRules(input);
 
-      const canUseLlm = runtimeConfig.config.llmProvider !== "none" && Boolean(llmApiKey);
+      const requestedProvider =
+        typeof body.provider === "string" ? body.provider : runtimeConfig.config.llmProvider;
+      const requestedKey = typeof body.apiKey === "string" && body.apiKey ? body.apiKey : llmApiKey;
+      const requestedModel =
+        typeof body.model === "string" && body.model ? body.model : llmModel;
+
+      const canUseLlm = requestedProvider !== "none" && Boolean(requestedKey);
 
       if (!canUseLlm) {
         const safeOutput = sanitizeParseResult(ruleResult, ruleResult);
@@ -255,9 +272,9 @@ const server = createServer(async (req, res) => {
       }
 
       const llmResult = await parseWithLlm({
-        provider: runtimeConfig.config.llmProvider,
-        apiKey: llmApiKey,
-        model: llmModel,
+        provider: requestedProvider,
+        apiKey: requestedKey,
+        model: requestedModel,
         userInput: input
       });
 

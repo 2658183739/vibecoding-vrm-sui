@@ -18,6 +18,9 @@ export interface AgentContext {
 export interface AgentParseRequest {
   text: string;
   context?: AgentContext;
+  apiKey?: string;
+  provider?: LlmProvider;
+  model?: string;
 }
 
 export interface AgentParseResponse {

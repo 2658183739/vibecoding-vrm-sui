@@ -29,6 +29,7 @@ import {
 } from "../lib/smokeState";
 import { normalizeTxFeedback, parseErrorMessage, type TxFeedback } from "../lib/sui";
 import { ConnectWalletButton, useWalletAccount, useWalletDAppKit } from "../lib/wallet";
+import { HttpLlmEnhancer } from "../lib/HttpLlmEnhancer";
 
 interface ChatMessage {
   id: string;
@@ -99,11 +100,20 @@ function actionNeedsWallet(actionType: string): boolean {
   );
 }
 
+
+
 function parseInvoiceIdFromPath(pathname: string): string | undefined {
   const parts = pathname.split("/").filter(Boolean);
   if (parts[0] === "pay" && parts[1]) return parts[1];
   return undefined;
 }
+// ... (rest of file context is far away, so I can't easily move it to line 1 in one go without reading line 1)
+
+// Wait, I should just remove the import from line 261 first, then add it to line 32 (next to other imports).
+// Actually, simple way:
+// 1. Remove the bad import at line 261.
+// 2. Add good import at top.
+
 
 function buildMessageId(): string {
   return `m_${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -258,7 +268,17 @@ export function AgentDrawer() {
     recentDigests: []
   });
 
-  const engine = useMemo(() => new CheckoutAgentEngine(), []);
+  // Re-create engine only when config changes
+  const engine = useMemo(() => {
+    const enhancer = new HttpLlmEnhancer({
+      endpoint: agentEndpoint || "http://localhost:3777",
+      apiKey: agentKeyInput,
+      provider: agentKeyInput ? "openai" : "none", // Default to openai if key provided, else none
+      model: agentModel
+    });
+    return new CheckoutAgentEngine(enhancer);
+  }, [agentEndpoint, agentKeyInput, agentModel]);
+
   const toolbox = useMemo(
     () => (account ? createWebAgentToolbox(account.address) : null),
     [account]

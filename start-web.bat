@@ -1,58 +1,33 @@
 @echo off
-setlocal EnableExtensions
-chcp 65001 >nul
-
 cd /d "%~dp0"
+echo [VibeSui Hackathon] Resetting Development Environment...
 
-set "SETUP_ONLY=0"
-if /I "%~1"=="--setup-only" set "SETUP_ONLY=1"
-set "PNPM_CMD="
+:: 1. Force Kill previous node processes (optional, but requested)
+:: Warn: This kills ALL node.exe, might affect other projects.
+echo [-] Cleaning up existing Node processes...
+taskkill /F /IM node.exe >nul 2>&1
 
-where corepack >nul 2>&1
-if errorlevel 1 (
-  echo [1/6] corepack not found, fallback to pnpm
-  where pnpm >nul 2>&1
-  if errorlevel 1 (
-    echo ERROR: Neither corepack nor pnpm is available in PATH.
-    goto :fail
-  )
-  set "PNPM_CMD=pnpm"
-) else (
-  echo [1/6] use corepack pnpm
-  call corepack prepare pnpm@10.5.2 --activate >nul 2>&1
-  if errorlevel 1 (
-    echo NOTE: corepack prepare failed, continue with existing corepack state.
-  )
-  set "PNPM_CMD=corepack pnpm"
-)
+:: Small delay to ensure ports are freed
+timeout /t 2 >nul
 
-echo [2/6] check pnpm version
-call %PNPM_CMD% -v
-if errorlevel 1 goto :fail
-
-echo [3/6] install dependencies
-call %PNPM_CMD% install
-if errorlevel 1 goto :fail
-
-echo [4/6] build agent package
-call %PNPM_CMD% --filter @vibesui/agent build
-if errorlevel 1 goto :fail
-
-if "%SETUP_ONLY%"=="1" (
-  echo [5/6] setup-only mode, skip browser and dev server
-  echo Setup completed.
-  goto :eof
-)
-
-echo [5/6] open browser
-start "" "http://localhost:5173/#/quickstart"
-
-echo [6/6] start frontend dev server
-call %PNPM_CMD% --filter @vibesui/web dev
-goto :eof
-
-:fail
+:: 2. Start Local Agent Service
+echo [1/2] Launching Local Agent (Port 3777)...
 echo.
-echo Startup failed. Please check errors above.
+start "VibeSui Local Agent" cmd /k "cd /d %~dp0 && npx pnpm dev:local-agent"
+
+:: Wait 5 seconds for agent to fully initialize
+timeout /t 5 >nul
+
+:: 3. Start Web Frontend
+echo [2/2] Launching Web Frontend (Port 5173)...
+echo.
+start "VibeSui Web App" cmd /k "cd /d %~dp0 && npx pnpm dev"
+
+echo.
+echo ========================================================
+echo  All services RESTARTED!
+echo  - Local Agent: http://localhost:3777
+echo  - Web App:     http://localhost:5173
+echo ========================================================
+echo.
 pause
-exit /b 1

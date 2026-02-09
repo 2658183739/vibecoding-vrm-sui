@@ -4,8 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.5.2",
   "scripts": {
-    "dev": "corepack pnpm --filter @vibesui/web dev",
-    "dev:local-agent": "corepack pnpm --filter @vibesui/local-agent dev",
+    "dev": "pnpm --filter @vibesui/web dev",
+    "dev:local-agent": "pnpm --filter @vibesui/local-agent dev",
     "build": "corepack pnpm -r build",
     "test": "corepack pnpm -r test",
     "test:e2e": "corepack pnpm --filter @vibesui/web test:e2e",

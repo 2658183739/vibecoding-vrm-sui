@@ -70,6 +70,85 @@ This project consists of 7 key pages that form a complete commercial loop.
 
 ---
 
+## Part 0.5: Detailed Interface Elements (界面元素详解)
+
+Here is a detailed breakdown of every button and input field for your 3-minute walk-through.
+以下是为您准备的 3 分钟演示中，每个界面按钮和输入框的详细中英文对照说明。
+
+### 1. Quickstart Page (`/quickstart`)
+*   **Hero Section (主标题区)**
+    *   `Title`: "Stableflow Checkout System" (Stableflow 支付收银系统)
+    *   `Button` **"Start Demo / 开始演示"**: Resets local state and clears old data to ensure a fresh demo environment. (重置本地状态，清除旧数据，确保演示环境干净)
+*   **Step Cards (步骤卡片)**
+    *   `Card 1` **"Merchant Setup"**:
+        *   `Button` **"Go to Merchant / 前往商户台"**: Navigates to the Merchant Dashboard. (跳转至商户后台)
+    *   `Card 2` **"User Payment"**:
+        *   `Button` **"Go to Pay / 前往支付页"**: Navigates to a sample payment page (requires an Invoice ID). (跳转至支付演示页，通常需要账单ID)
+    *   `Card 3` **"Redeem"**:
+        *   `Button` **"Go to Redeem / 前往赎回"**: Navigates to the User Redemption page. (跳转至用户赎回页)
+    *   `Card 4` **"Merchant Claim"**:
+        *   `Button` **"Go to Claim / 前往提现"**: Navigates to the Merchant Settlement page. (跳转至商户结算页)
+
+### 2. Merchant Dashboard (`/merchant`)
+*   **Header (顶部导航)**
+    *   `Logo`: "Stableflow" -> Returns to Home. (返回首页)
+    *   `Button` **"Connect Wallet / 连接钱包"**: Connects your Sui wallet (e.g., Suiet, Sui Wallet). (连接 Sui 钱包)
+*   **Create Product Panel (创建商品面板)**
+    *   `Input` **"Product Title / 商品名称"**: Enter product name, e.g., "Hackathon T-Shirt". (输入商品名称)
+    *   `Input` **"Price (USD) / 价格"**: Enter price in USD, e.g., "10". (输入价格)
+    *   `Button` **"Create Product / 创建商品"**: Calls smart contract to create a Product Object on-chain. (调用合约在链上创建商品对象)
+*   **Product List (商品列表)**
+    *   `List Item`: Shows Product ID, Title, Price. (显示商品 ID、名称、价格)
+    *   `Button` **"Create Invoice / 创建账单"**: Generates a payment invoice for this specific product. (为该商品生成支付账单)
+*   **Invoice List (账单列表)**
+    *   `List Item`: Shows Invoice ID, Status (Unpaid/Paid). (显示账单 ID、状态)
+    *   `Button` **"Copy Link / 复制链接"**: Copies the payment link to clipboard. (复制支付链接)
+    *   `Button` **"Pay / 支付"**: Navigates to the payment page for this invoice. (跳转至该账单的支付页)
+
+### 3. Payment Page (`/pay/:id`)
+*   **Invoice Details (账单详情)**
+    *   `Text`: Displays "Pay to [Merchant]", "Amount", "Product Name". (显示“支付给[商户]”、“金额”、“商品名”)
+    *   `Status Badge`: "UNPAID" (Yellow) or "PAID" (Green). (未支付/已支付状态标签)
+*   **Payment Methods (支付方式)**
+    *   `Radio Button` **"USDC (Mint+Pay)"**: Selects the atomic Mint+Pay method using USDC. (选择 USDC 原子化铸造并支付)
+    *   `Radio Button` **"BrandUSD"**: Selects direct payment using existing brand stablecoins. (选择使用现有品牌币直接支付)
+*   **Action Area (操作区)**
+    *   `Button` **"Pay [Amount] USDC"**: Triggers the wallet signature for the atomic transaction. (触发原子交易的钱包签名)
+    *   `Text` **"Fee Breakdown / 费用明细"**: Shows network gas fee and conversion rate (1:1). (显示网络 Gas 费及 1:1 汇率)
+
+### 4. Agent Drawer / Chat (`Floating Button`)
+*   **Floating Button (悬浮球)**
+    *   `Icon`: "🤖" (Bottom Right/右下角) -> Toggles the Assistant Panel. (开关助手面板)
+*   **Chat Panel (聊天面板)**
+    *   `Header`: **"Stableflow Assistant"** with `Status` (Online/Offline). (助手标题及在线状态)
+    *   `Tabs` **"Config / 配置"**:
+        *   `Input` **"LLM API Key"**: Enter OpenAI/Anthropic Key here to enable AI features. (输入 Key 以开启 AI 功能)
+        *   `Input` **"Endpoint"**: Default `http://localhost:3777`. (默认本地服务地址)
+        *   `Toggle` **"Enable LLM / 开启大模型"**: Switches between Rules-based and LLM-based parsing. (切换规则/大模型解析)
+    *   `Message Area`: Shows chat history. (显示聊天记录)
+    *   `Input Bar`: **"Type a command... / 输入指令..."**:
+        *   Example: "Redeem all my BrandUSD" (把我的 BrandUSD 全部赎回)
+        *   Example: "Check status of tx..." (查询交易状态...)
+    *   `Button` **"Send / 发送"**: Sends message to Local Agent. (发送消息给本地 Agent)
+
+### 5. Redemption Page (`/redeem`)
+*   **Balance Display (余额展示)**
+    *   `Card`: "Your BrandUSD Balance". (您的 BrandUSD 余额)
+*   **Redeem Form (赎回表单)**
+    *   `Input` **"Amount / 金额"**: Amount to burn/redeem. (赎回数量)
+    *   `Button` **"Max / 全部"**: Fills in total available balance. (填入全部余额)
+    *   `Button` **"Redeem to USDC / 赎回为 USDC"**: Executes burn transaction to get USDC back. (执行销毁交易以取回 USDC)
+
+### 6. Merchant Metrics (`/merchant/metrics`)
+*   **Dashboard Cards (看板卡片)**
+    *   `Card` **"TVL"**: Total Value Locked in protocol. (协议总锁仓量)
+    *   `Card` **"Total Supply"**: Total circulated BrandUSD. (BrandUSD 总流通量)
+    *   `Card` **"Revenue"**: Unclaimed merchant revenue. (商户未提取营收)
+*   **Charts (图表)**
+    *   (If available) Simple bar/line charts showing daily volume. (简单的日交易量图表)
+
+---
+
 ## Part 1: The Hook (30 seconds / 开场 30秒)
 
 **Script (话术)**:

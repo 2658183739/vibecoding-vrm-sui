@@ -209,89 +209,124 @@ export default function RedeemPage() {
     : "Enter amount to see preview.";
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
-      <Card variant="secondary" className="panel-card shadow-[0_20px_60px_rgba(5,12,22,0.45)]">
-        <Card.Content className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-100">BrandUSD Redemption</h1>
-            <p className="text-sm text-slate-300">
-              Initiate Burn via stable-layer-sdk to redeem BrandUSD according to rules.
-            </p>
-            <p className="text-xs text-slate-400">Stablecoin Type: {stableCoinType || "Not Configured"}</p>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+            <span className="text-2xl">🔥</span>
           </div>
-          <ConnectWalletButton />
-        </Card.Content>
-      </Card>
+          <div>
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400 text-glow">
+              Redeem BrandUSD
+            </h1>
+            <p className="text-slate-400 text-sm">Burn your stablecoins to redeem underlying assets.</p>
+          </div>
+        </div>
+        <ConnectWalletButton />
+      </div>
 
       <RedemptionModeBanner />
 
-      {burnConfigError && !smokeMode && (
-        <Card variant="secondary" className="panel-card border-red-400/40">
-          <Card.Content className="text-sm text-red-300">
-            Redeem Unavailable: {burnConfigError}
-          </Card.Content>
-        </Card>
-      )}
+      <div className="grid md:grid-cols-2 gap-8 relative z-10">
+        {/* Left: Burn Form */}
+        <div className="space-y-6">
+          <div className="panel-card p-6 border-t-4 border-t-amber-500">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-white">Burn Request</h2>
+              <div className="text-right">
+                <p className="text-xs text-slate-400">Available Balance</p>
+                <p className="font-mono text-amber-400 font-bold">
+                  {balanceLoading ? "..." : balance.toString()} <span className="text-xs text-slate-500">BrandUSD</span>
+                </p>
+              </div>
+            </div>
 
-      <Card variant="secondary" className="panel-card">
-        <Card.Content className="space-y-2 text-sm text-slate-200">
-          <p className="break-all">Wallet Address: {account?.address || "-"}</p>
-          <p>BrandUSD Balance: {balance.toString()}</p>
-          {balanceLoading && <p className="text-amber-300">Refreshing balance...</p>}
-          {balanceError && <p className="text-red-300">{balanceError}</p>}
-        </Card.Content>
-      </Card>
+            <div className="bg-black/20 rounded-xl p-4 mb-6 border border-white/5">
+              <Input
+                label="Amount to Burn"
+                placeholder="0.00"
+                labelPlacement="outside"
+                value={burnAmountInput}
+                onChange={(e) => setBurnAmountInput(e.target.value)}
+                endContent={
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">BrandUSD</span>
+                    <button
+                      onClick={() => setBurnAmountInput(balance.toString())}
+                      className="text-xs bg-amber-500/20 text-amber-300 px-2 py-1 rounded hover:bg-amber-500/30 transition-colors"
+                    >
+                      MAX
+                    </button>
+                  </div>
+                }
+                classNames={{
+                  input: "bg-transparent text-white font-mono text-lg",
+                  inputWrapper: "bg-transparent shadow-none border-b border-white/10 hover:border-amber-500/50 focus-within:!border-amber-500 px-0 rounded-none transition-colors group-data-[focus=true]:bg-transparent"
+                }}
+              />
+              <p className="text-xs text-slate-500 mt-2 text-right">
+                {amountPreview}
+              </p>
+            </div>
 
-      <Card variant="secondary" className="panel-card">
-        <Card.Content className="space-y-4">
-          <h2 className="text-base font-semibold text-slate-100">Redeem Operations</h2>
-          <Input
-            aria-label="Redeem Amount"
-            inputMode="numeric"
-            placeholder="Enter Amount (u64)"
-            value={burnAmountInput}
-            onChange={(event) => setBurnAmountInput(event.currentTarget.value)}
-            variant="secondary"
-          />
-          <p className="text-xs text-slate-400">{amountPreview}</p>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              data-testid="redeem-burn-amount-btn"
-              variant="primary"
-              isDisabled={!account || txLoading || !parsedAmount || !!burnConfigError}
-              onPress={() => submitBurn("amount")}
-            >
-              Redeem Amount
-            </Button>
-            <Button
-              data-testid="redeem-burn-all-btn"
-              variant="secondary"
-              isDisabled={!account || txLoading || balance <= 0n || !!burnConfigError}
-              onPress={() => submitBurn("all")}
-            >
-              Redeem All
-            </Button>
-          </div>
-        </Card.Content>
-      </Card>
+            <div className="space-y-3">
+              <Button
+                className="w-full h-12 text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-900/20"
+                isDisabled={!account || txLoading || !parsedAmount || !!burnConfigError}
+                onPress={() => submitBurn("amount")}
+                isLoading={txLoading}
+              >
+                {txLoading ? "Processing..." : "Confirm Burn"}
+              </Button>
+            </div>
 
-      {(txPreview || txLoading || txError || txResult) && (
-        <Card variant="secondary" className="panel-card">
-          <Card.Content className="space-y-2 text-sm text-slate-200">
-            <p className="font-semibold text-slate-100">Tx Preview</p>
-            {!txPreview && <p className="text-slate-400">No preview.</p>}
-            {txPreview?.mode === "amount" && (
-              <p>Mode: Amount ({txPreview.burnAmount?.toString() ?? "0"})</p>
+            {burnConfigError && !smokeMode && (
+              <div className="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-xs text-red-300">
+                ⚠️ Config Error: {burnConfigError}
+              </div>
             )}
-            {txPreview?.mode === "all" && <p>Mode: All Balance</p>}
-            <p>Settlement: T+1 (Default for MVP)</p>
-          </Card.Content>
-        </Card>
-      )}
+          </div>
 
-      <TxFeedbackCard label="Redeem Tx" loading={txLoading} error={txError} result={txResult} />
+          {(txPreview || txResult) && (
+            <div className="panel-card p-4 bg-white/5">
+              <h3 className="text-sm font-bold text-slate-300 mb-2">Transaction Status</h3>
+              <TxFeedbackCard label="Burn Tx" loading={txLoading} error={txError} result={txResult} />
+            </div>
+          )}
+        </div>
 
-      <RecentTxHistoryCard title="Recent Local Tx (Demo)" refreshKey={historyRefreshKey} />
+        {/* Right: Info & History */}
+        <div className="space-y-6">
+          <div className="panel-card p-6 bg-gradient-to-br from-slate-900 to-slate-900/50">
+            <h3 className="text-slate-100 font-bold mb-4 flex items-center gap-2">
+              <span>ℹ️</span> Redemption Rules
+            </h3>
+            <ul className="space-y-3 text-sm text-slate-400">
+              <li className="flex gap-2">
+                <span className="text-amber-500">•</span>
+                Settlement Cycle: <span className="text-white">T+1 Days</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-500">•</span>
+                Minimum Amount: <span className="text-white">100 BrandUSD</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-500">•</span>
+                Fee: <span className="text-white">0.05%</span> (Waived for MVP)
+              </li>
+            </ul>
+          </div>
+
+          <div className="panel-card p-6 min-h-[300px]">
+            <h3 className="text-lg font-bold text-white mb-4">Redemption History</h3>
+            <RecentTxHistoryCard title="" refreshKey={historyRefreshKey} />
+          </div>
+        </div>
+      </div>
+
+      {/* Background Decor */}
+      <div className="fixed bottom-[20%] left-[10%] w-[400px] h-[400px] bg-amber-600/5 rounded-full blur-3xl pointer-events-none -z-10" />
     </div>
   );
 }
