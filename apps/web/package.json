@@ -14,8 +14,8 @@
   "dependencies": {
     "@vibesui/agent": "workspace:*",
     "@heroui/react": "^3.0.0-beta.6",
-    "@mysten/dapp-kit-react": "^1.0.1",
-    "@mysten/sui": "^2.3.1",
+    "@mysten/dapp-kit-react": "^1.0.2",
+    "@mysten/sui": "^2.3.2",
     "@tanstack/react-query": "^5.90.3",
     "buffer": "^6.0.3",
     "process": "^0.11.10",

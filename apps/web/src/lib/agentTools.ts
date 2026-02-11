@@ -111,7 +111,19 @@ export async function getTxStatus(digest: string): Promise<AgentTxStatusSnapshot
     status = "success";
   } else if (effects?.status.status === "failure") {
     status = "failure";
-    errorMessage = effects.status.error || undefined;
+    const rawError = effects.status.error;
+    if (typeof rawError === "string") {
+      errorMessage = rawError;
+    } else if (
+      rawError &&
+      typeof rawError === "object" &&
+      "message" in rawError &&
+      typeof (rawError as { message?: unknown }).message === "string"
+    ) {
+      errorMessage = (rawError as { message: string }).message;
+    } else if (rawError != null) {
+      errorMessage = JSON.stringify(rawError);
+    }
   }
 
   return {

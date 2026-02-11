@@ -1,4 +1,4 @@
-﻿import type { CoinStruct } from "@mysten/sui/jsonRpc";
+﻿import type { LegacyCoinStruct } from "../suiClientCompat";
 import { type Transaction, type TransactionObjectArgument } from "@mysten/sui/transactions";
 import { getSuiClient } from "../sui";
 
@@ -13,9 +13,9 @@ export interface UsdcSelectionForTx extends UsdcSelectionPreview {
 }
 
 function pickCoinsByAmount(
-  coins: CoinStruct[],
+  coins: LegacyCoinStruct[],
   amount: bigint
-): { selectedCoins: CoinStruct[]; totalSelected: bigint } {
+): { selectedCoins: LegacyCoinStruct[]; totalSelected: bigint } {
   const sorted = [...coins].sort((a, b) => {
     const aVal = BigInt(a.balance);
     const bVal = BigInt(b.balance);
@@ -23,7 +23,7 @@ function pickCoinsByAmount(
     return aVal > bVal ? -1 : 1;
   });
 
-  const selectedCoins: CoinStruct[] = [];
+  const selectedCoins: LegacyCoinStruct[] = [];
   let totalSelected = 0n;
 
   for (const coin of sorted) {
@@ -117,3 +117,4 @@ export async function selectUsdcCoinForTx(input: {
     selectedCoinIds: selectedCoins.map((coin) => coin.coinObjectId)
   };
 }
+

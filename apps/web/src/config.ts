@@ -1,4 +1,4 @@
-﻿import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
+﻿import { getFullnodeUrl, resolveSuiClientUrl } from "./lib/suiClientCompat";
 
 export type SuiNetwork = "mainnet" | "testnet" | "devnet" | "localnet";
 export type StableLayerNetwork = "mainnet" | "testnet";
@@ -38,7 +38,7 @@ function defaultExplorerBase(currentNetwork: SuiNetwork): string {
 
 export const appConfig = {
   network,
-  rpcUrl: import.meta.env.VITE_SUI_RPC_URL || getJsonRpcFullnodeUrl(network),
+  rpcUrl: resolveSuiClientUrl(import.meta.env.VITE_SUI_RPC_URL, network) || getFullnodeUrl(network),
   explorerTxBase: import.meta.env.VITE_SUI_EXPLORER_TX_BASE || defaultExplorerBase(network),
   contract: {
     packageId: import.meta.env.VITE_PACKAGE_ID || "0x0",
@@ -121,3 +121,4 @@ export function toExplorerTxUrl(digest: string): string {
   if (!appConfig.explorerTxBase) return "";
   return `${appConfig.explorerTxBase}${digest}`;
 }
+

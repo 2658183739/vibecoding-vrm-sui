@@ -1,5 +1,5 @@
 ﻿import type { SuiClientTypes } from "@mysten/sui/client";
-import { SuiJsonRpcClient, type SuiObjectResponse } from "@mysten/sui/jsonRpc";
+import { SuiClient, type LegacySuiObjectResponse } from "./suiClientCompat";
 import { Transaction, type TransactionObjectArgument } from "@mysten/sui/transactions";
 import {
   appConfig,
@@ -76,11 +76,11 @@ export async function fetchCoinBalance(owner: string, coinType: string): Promise
   return BigInt(response.totalBalance);
 }
 
-let suiClientSingleton: SuiJsonRpcClient | null = null;
+let suiClientSingleton: SuiClient | null = null;
 
-export function getSuiClient(): SuiJsonRpcClient {
+export function getSuiClient(): SuiClient {
   if (!suiClientSingleton) {
-    suiClientSingleton = new SuiJsonRpcClient({
+    suiClientSingleton = new SuiClient({
       network: appConfig.network,
       url: appConfig.rpcUrl
     });
@@ -154,15 +154,15 @@ function parseBuyer(value: unknown): string | undefined {
   return undefined;
 }
 
-function readObjectId(response: SuiObjectResponse): string {
+function readObjectId(response: LegacySuiObjectResponse): string {
   return response.data?.objectId ?? "";
 }
 
-function readObjectType(response: SuiObjectResponse): string {
+function readObjectType(response: LegacySuiObjectResponse): string {
   return response.data?.type ?? "";
 }
 
-function readMoveFields(response: SuiObjectResponse): MoveFields {
+function readMoveFields(response: LegacySuiObjectResponse): MoveFields {
   const content = response.data?.content;
   if (!content || typeof content !== "object") return {};
 
@@ -209,9 +209,9 @@ function payInvoiceReturnsReceiptObject(): boolean {
   return appConfig.contract.payInvoiceFn === "pay_invoice";
 }
 
-async function getAllOwnedObjects(owner: string): Promise<SuiObjectResponse[]> {
+async function getAllOwnedObjects(owner: string): Promise<LegacySuiObjectResponse[]> {
   const client = getSuiClient();
-  const objects: SuiObjectResponse[] = [];
+  const objects: LegacySuiObjectResponse[] = [];
   let cursor: string | null | undefined;
 
   do {
@@ -587,3 +587,4 @@ export async function normalizeTxFeedback(result: DAppKitTxResult): Promise<TxFe
 
   return feedback;
 }
+
